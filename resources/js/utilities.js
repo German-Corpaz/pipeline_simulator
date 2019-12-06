@@ -75,11 +75,20 @@ export function twoRegistersOneConstantInstruction(mnemonic) {
   ];
   return twoRegisterOneConstantMnemonics.indexOf(mnemonic) >= 0;
 }
+
 export function twoRegisterInstruction(mnemonic) {
   let twoRegisterMnemonics = [
     "MOVE"
   ];
   return twoRegisterMnemonics.indexOf(mnemonic) >= 0;
+}
+
+export function branchInstruction(mnemonic) {
+  let branchMnemonics = [
+    "BEQ",
+    "BNE"
+  ];
+  return branchMnemonics.indexOf(mnemonic) >= 0;
 }
 
 export function isValidRegister(register) {

@@ -31,6 +31,7 @@ function parseInstruction(instruction){
     let sourceRegister2;
     let destinationRegister;
     let constant;
+    let branchAddress;
     if (utilities.isValidMnemonic(mnemonic)){
         parameters=utilities.getParameters(instruction);
         fullInstruction=mnemonic+" "+parameters;
@@ -103,6 +104,32 @@ function parseInstruction(instruction){
                 else{
                     parseResult.error="Invalid Register "+arrayParameters[0];
                 }
+            }
+        }
+        else if(utilities.branchInstruction(mnemonic)){
+            if (arrayParameters.length!=3){
+                parseResult.error="The instruction "+mnemonic+" takes two Registers and one relative address separated with ',' as parameters"
+            }
+            else{
+                if (utilities.isValidConstant(arrayParameters[2])){
+                    branchAddress=utilities.getConstant(arrayParameters[2]);
+                }
+                else{
+                    parseResult.error="Invalid Constant "+arrayParameters[2];
+                }
+                if (utilities.isValidRegister(arrayParameters[1])){
+                    sourceRegister1=utilities.getRegisterNumber(arrayParameters[1]);
+                }
+                else{
+                    parseResult.error="Invalid Register "+arrayParameters[1];
+                }
+                if (utilities.isValidRegister(arrayParameters[0])){
+                    sourceRegister2=utilities.getRegisterNumber(arrayParameters[0]);
+                }
+                else{
+                    parseResult.error="Invalid Register "+arrayParameters[0];
+                }
+
             }
         }
     }

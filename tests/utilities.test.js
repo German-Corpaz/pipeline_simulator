@@ -142,6 +142,23 @@ test('Is NOP a two register instruction', () => {
   expect(utilities.twoRegisterInstruction("NOP")).toBe(false);
 });
 
+/* Branch Instruction*/
+test('Is MOVE a branch instruction', () => {
+  expect(utilities.branchInstruction("MOVE")).toBe(false);
+});
+test('Is MULI a branch instruction', () => {
+  expect(utilities.branchInstruction("MULI")).toBe(false);
+});
+test('Is BEQ a branch instruction', () => {
+  expect(utilities.branchInstruction("BEQ")).toBe(true);
+});
+test('Is BNE a branch instruction', () => {
+  expect(utilities.branchInstruction("BNE")).toBe(true);
+});
+test('Is NOP a branch instruction', () => {
+  expect(utilities.branchInstruction("NOP")).toBe(false);
+});
+
 /* is valid register number */
 test('Is 0 a valid register number', () => {
   expect(utilities.isValidRegisterNumber(0)).toBe(true);
