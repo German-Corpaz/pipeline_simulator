@@ -1,0 +1,20 @@
+{
+  "name": "pipeline_simulator",
+  "version": "1.0.0",
+  "description": "MIPS Pipeline Simulator",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^24.9.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "babel-jest": "^24.9.0"
+  }
+}

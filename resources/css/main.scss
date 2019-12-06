@@ -1,0 +1,52 @@
+$ganttBG:#4A5568;
+$editorBG:#2D3748;
+$buttonBG:#2B6CB0;
+$buttonColor:#EBF8FF;
+*{
+    margin:0;
+    padding:0;
+}
+
+.container{
+    display:flex;
+    width:100vw;
+    height:100vh;
+    font-family: Nunito;
+    .left-container{
+        width:500px;
+        background:$editorBG;
+        padding:30px;
+        min-width: 400px;
+        .editor{
+            height:400px;
+            margin-bottom:30px;
+            font-size: 24px;
+        }
+        .console{
+            height:100px;
+            color:red;
+            background:black;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .primary{
+            padding:12px 16px;
+            background:$buttonBG;
+            color:$buttonColor;
+            transition:.3s;
+            float:right;
+            cursor:pointer;
+            &:hover{
+                background:rgb(30, 92, 158);
+            }
+        }
+        .radio{
+            color:white
+        }
+    }
+    .right-container{
+        padding:30px;
+        background:$ganttBG;
+        width:1360px;
+    }
+}

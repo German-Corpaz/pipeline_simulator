@@ -1,0 +1,59 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  font-family: Nunito;
+}
+
+.container .left-container {
+  width: 500px;
+  background: #2D3748;
+  padding: 30px;
+  min-width: 400px;
+}
+
+.container .left-container .editor {
+  height: 400px;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+.container .left-container .console {
+  height: 100px;
+  color: red;
+  background: black;
+  margin-bottom: 30px;
+  font-size: 18px;
+}
+
+.container .left-container .primary {
+  padding: 12px 16px;
+  background: #2B6CB0;
+  color: #EBF8FF;
+  -webkit-transition: .3s;
+  transition: .3s;
+  float: right;
+  cursor: pointer;
+}
+
+.container .left-container .primary:hover {
+  background: #1e5c9e;
+}
+
+.container .left-container .radio {
+  color: white;
+}
+
+.container .right-container {
+  padding: 30px;
+  background: #4A5568;
+  width: 1360px;
+}
+/*# sourceMappingURL=main.css.map */
