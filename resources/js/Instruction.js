@@ -3,11 +3,20 @@ import * as utilities from "./utilities.js";
 export default class Instruction {
   constructor(instruction) {
     let instructionData = parseInstruction(instruction.trim());
-    console.log(instructionData)
+    if (instructionData.fullInstruction) this.fullInstruction = instructionData.fullInstruction;
+    if (instructionData.mnemonic) this.mnemonic = instructionData.mnemonic;
+    if (instructionData.destinationRegister) this.destinationRegister = instructionData.destinationRegister;
+    if (instructionData.sourceRegister1) this.sourceRegister1 = instructionData.sourceRegister1;
+    if (instructionData.sourceRegister2) this.sourceRegister2 = instructionData.sourceRegister2;
+    if (instructionData.constant) this.constant = instructionData.constant;
+    if (instructionData.branchAddress) this.branchAddress = instructionData.branchAddress;
+    if (instructionData.memoryOffset) this.memoryOffset = instructionData.memoryOffset;
+    if (instructionData.jumpAddress) this.jumpAddress = instructionData.jumpAddress;
+    if (instructionData.error) this.error = instructionData.error;
   }
 }
 
-function parseInstruction(instruction) {
+export function parseInstruction(instruction) {
   let mnemonic = utilities.getMnemonic(instruction);
   let parameters;
   let fullInstruction;
@@ -148,7 +157,7 @@ function parseInstruction(instruction) {
         }
       }
     } else if (utilities.nopInstruction(mnemonic)) {
-      if (arrayParameters.length != 0) {
+      if (arrayParameters.length != 1 || arrayParameters[0]!="") {
         parseResult.error =
           "The instruction " + mnemonic + " doesn't take parameters";
       }
@@ -159,17 +168,15 @@ function parseInstruction(instruction) {
     parseResult.error = "Invalid Mnemonic " + mnemonic;
   }
 
-  if (parseResult.error == "") {
-  }
   parseResult.fullInstruction = fullInstruction;
   parseResult.mnemonic = mnemonic;
-  parseResult.destinationRegister=destinationRegister;
-  parseResult.sourceRegister1=sourceRegister1;
-  parseResult.sourceRegister2=sourceRegister2;
-  parseResult.constant=constant;
-  parseResult.branchAddress=branchAddress;
-  parseResult.memoryOffset=memoryOffset;
-  parseResult.jumpAddress=jumpAddress;
+  parseResult.destinationRegister = destinationRegister;
+  parseResult.sourceRegister1 = sourceRegister1;
+  parseResult.sourceRegister2 = sourceRegister2;
+  parseResult.constant = constant;
+  parseResult.branchAddress = branchAddress;
+  parseResult.memoryOffset = memoryOffset;
+  parseResult.jumpAddress = jumpAddress;
 
   return parseResult;
 }

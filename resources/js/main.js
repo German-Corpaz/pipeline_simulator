@@ -15,12 +15,29 @@ function setupListeners(){
 function mainCode() {
   let editorCode=editor.getValue().toUpperCase();
   let codeLines=utilities.splitInLines(editorCode);
-
-  for (let i = 0; i < codeLines.length; i++) {
+  let instructions=[];
+  let parsingError="";
+  let i=0;
+  for (i = 0; i < codeLines.length; i++) {
     let line = codeLines[i];
     if (!utilities.blankLine(line)) {
       let newInstruction=new Instruction(line);
+      if (newInstruction.error){
+        parsingError=newInstruction.error;
+        break;
+      }
+      else{
+        instructions.push(newInstruction);
+      }
     }
+  }
+
+  if (parsingError){
+    i++;
+    console.log("Parsing ERROR on line "+i+"\n"+parsingError);
+  }
+  else{
+    console.log(instructions)
   }
 }
 
