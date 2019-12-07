@@ -84,6 +84,14 @@ export function memoryInstruction(mnemonic) {
   let memoryMnemonics = ["LW", "SW"];
   return memoryMnemonics.indexOf(mnemonic) >= 0;
 }
+export function jumpInstruction(mnemonic) {
+  let jumpMnemonics = ["JUMP"];
+  return jumpMnemonics.indexOf(mnemonic) >= 0;
+}
+export function nopInstruction(mnemonic) {
+  let nopMnemonics = ["NOP"];
+  return nopMnemonics.indexOf(mnemonic) >= 0;
+}
 
 export function isValidRegister(register) {
   return (
@@ -156,4 +164,16 @@ export function getRegisterFromMemory(memoryAccess) {
 
 export function getConstant(number) {
   return Number(number);
+}
+
+export function isValidJumpAddress(number) {
+  if (number == "") return false;
+  let castNumber = Number(number);
+  if (
+    Number.isInteger(castNumber) &&
+    castNumber >=0 &&
+    castNumber <= 2 ** 31 - 1
+  )
+    return true;
+  else return false;
 }

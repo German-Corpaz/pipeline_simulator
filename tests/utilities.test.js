@@ -176,6 +176,40 @@ test('Is NOP a memory instruction', () => {
   expect(utilities.memoryInstruction("NOP")).toBe(false);
 });
 
+/* Jump Instruction*/
+test('Is LW a memory instruction', () => {
+  expect(utilities.jumpInstruction("JUMP")).toBe(true);
+});
+test('Is SW a memory instruction', () => {
+  expect(utilities.jumpInstruction("SW")).toBe(false);
+});
+test('Is BEQ a memory instruction', () => {
+  expect(utilities.jumpInstruction("BEQ")).toBe(false);
+});
+test('Is ADD a memory instruction', () => {
+  expect(utilities.jumpInstruction("ADD")).toBe(false);
+});
+test('Is NOP a memory instruction', () => {
+  expect(utilities.jumpInstruction("NOP")).toBe(false);
+});
+
+/* NOP Instruction*/
+test('Is LW a memory instruction', () => {
+  expect(utilities.nopInstruction("LW")).toBe(false);
+});
+test('Is SW a memory instruction', () => {
+  expect(utilities.nopInstruction("SW")).toBe(false);
+});
+test('Is BEQ a memory instruction', () => {
+  expect(utilities.nopInstruction("BEQ")).toBe(false);
+});
+test('Is ADD a memory instruction', () => {
+  expect(utilities.nopInstruction("ADD")).toBe(false);
+});
+test('Is NOP a memory instruction', () => {
+  expect(utilities.nopInstruction("NOP")).toBe(true);
+});
+
 /* is valid register number */
 test('Is 0 a valid register number', () => {
   expect(utilities.isValidRegisterNumber(0)).toBe(true);
@@ -329,3 +363,21 @@ test('Get register from -4(R1)', () => {
 test('Get register from -4(invalidregister)', () => {
   expect(utilities.isValidMemoryAccess("-4(invalidregister)")).toBe(false);
 });
+
+/* is valid jump address */
+test('Get register from 123', () => {
+  expect(utilities.isValidJumpAddress("123")).toBe(true);
+});
+test('Get register from 0', () => {
+  expect(utilities.isValidJumpAddress("0")).toBe(true);
+});
+test('Get register from -4', () => {
+  expect(utilities.isValidJumpAddress("-4")).toBe(false);
+});
+test('Get register from 999999999999999', () => {
+  expect(utilities.isValidJumpAddress("999999999999999")).toBe(false);
+});
+test('Get register from R2', () => {
+  expect(utilities.isValidJumpAddress("R2")).toBe(false);
+});
+
