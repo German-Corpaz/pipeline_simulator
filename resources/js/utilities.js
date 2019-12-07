@@ -66,29 +66,23 @@ export function threeRegisterInstruction(mnemonic) {
 }
 
 export function twoRegistersOneConstantInstruction(mnemonic) {
-  let twoRegisterOneConstantMnemonics = [
-    "ADDI",
-    "ANDI",
-    "ORI",
-    "XORI",
-    "SLTI"
-  ];
+  let twoRegisterOneConstantMnemonics = ["ADDI", "ANDI", "ORI", "XORI", "SLTI"];
   return twoRegisterOneConstantMnemonics.indexOf(mnemonic) >= 0;
 }
 
 export function twoRegisterInstruction(mnemonic) {
-  let twoRegisterMnemonics = [
-    "MOVE"
-  ];
+  let twoRegisterMnemonics = ["MOVE"];
   return twoRegisterMnemonics.indexOf(mnemonic) >= 0;
 }
 
 export function branchInstruction(mnemonic) {
-  let branchMnemonics = [
-    "BEQ",
-    "BNE"
-  ];
+  let branchMnemonics = ["BEQ", "BNE"];
   return branchMnemonics.indexOf(mnemonic) >= 0;
+}
+
+export function memoryInstruction(mnemonic) {
+  let memoryMnemonics = ["LW", "SW"];
+  return memoryMnemonics.indexOf(mnemonic) >= 0;
 }
 
 export function isValidRegister(register) {
@@ -106,18 +100,60 @@ export function getRegisterNumber(register) {
     .split("")
     .slice(1, register.length)
     .join("");
-  if (registerNumber=="") return -1
-  return Number(registerNumber)
+  if (registerNumber == "") return -1;
+  return Number(registerNumber);
 }
 
-export function isValidConstant(number){
-  if (number=="") return false;
-  let castNumber=Number(number);
-  if( Number.isInteger(castNumber) && castNumber>=-(2**31) && castNumber<=(2**31-1))
+export function isValidConstant(number) {
+  if (number == "") return false;
+  let castNumber = Number(number);
+  if (
+    Number.isInteger(castNumber) &&
+    castNumber >= -(2 ** 31) &&
+    castNumber <= 2 ** 31 - 1
+  )
     return true;
   else return false;
 }
 
-export function getConstant(number){
+export function isValidMemoryAccess(memoryAccess) {
+  let offset = getOffset(memoryAccess);
+  let register = getRegisterFromMemory(memoryAccess);
+
+  if (offset != "" && register != "") return true;
+  else return false;
+}
+
+export function getOffset(memoryAccess) {
+  let i = 0;
+  let offset = "";
+  while (i < memoryAccess.length && memoryAccess[i] != "(") {
+    offset += memoryAccess[i];
+    i++;
+  }
+  if (memoryAccess[i] != "(") return "";
+  if (isValidConstant(offset)) return getConstant(offset);
+  else return "";
+}
+
+export function getRegisterFromMemory(memoryAccess) {
+  let i = 0;
+  let register = "";
+  while (i < memoryAccess.length && memoryAccess[i] != "(") {
+    i++;
+  }
+  if (memoryAccess[i] != "(") return "";
+  else i++;
+  while (i < memoryAccess.length && memoryAccess[i] != ")") {
+    register += memoryAccess[i];
+    i++;
+  }
+  if (memoryAccess[i] != ")") return "";
+
+  if (isValidRegister(register)) return getRegisterNumber(register);
+  else return "";
+}
+
+export function getConstant(number) {
   return Number(number);
 }

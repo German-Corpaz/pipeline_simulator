@@ -32,6 +32,7 @@ function parseInstruction(instruction){
     let destinationRegister;
     let constant;
     let branchAddress;
+    let memoryOffset;
     if (utilities.isValidMnemonic(mnemonic)){
         parameters=utilities.getParameters(instruction);
         fullInstruction=mnemonic+" "+parameters;
@@ -115,7 +116,7 @@ function parseInstruction(instruction){
                     branchAddress=utilities.getConstant(arrayParameters[2]);
                 }
                 else{
-                    parseResult.error="Invalid Constant "+arrayParameters[2];
+                    parseResult.error="Invalid Branch Address "+arrayParameters[2];
                 }
                 if (utilities.isValidRegister(arrayParameters[1])){
                     sourceRegister1=utilities.getRegisterNumber(arrayParameters[1]);
@@ -132,11 +133,33 @@ function parseInstruction(instruction){
 
             }
         }
+        else if(utilities.memoryInstruction(mnemonic)){
+            if (arrayParameters.length!=2){
+                parseResult.error="The instruction "+mnemonic+" takes one Registers and one memory access separated with ',' as parameters"
+            }
+            else{
+                if (utilities.isValidMemoryAccess(arrayParameters[1])){
+                    memoryOffset=utilities.getOffset(arrayParameters[1]);
+                    sourceRegister1=utilities.getRegisterFromMemory(arrayParameters[1]);
+                }
+                else{
+                    parseResult.error="Inavalid memory access "+arrayParameters[1];
+                }
+                if (utilities.isValidRegister(arrayParameters[0])){
+                    if (mnemonic=="LW") destinationRegister=utilities.getRegisterNumber(arrayParameters[0])
+                    else if (mnemonic=="SW") sourceRegister2=utilities.getRegisterNumber(arrayParameters[0])
+                }
+                else{
+                    parseResult.error="Inavalid Register "+arrayParameters[0];
+                }
+            }
+
+        }
     }
     else{
         parseResult.error="Invalid Mnemonic :"+mnemonic;
     }
-    console.log(destinationRegister,sourceRegister1,sourceRegister2,constant)
+    console.log(destinationRegister,sourceRegister1,sourceRegister2,constant,branchAddress,memoryOffset)
     console.log(parseResult.error)
 
     return parseResult;
