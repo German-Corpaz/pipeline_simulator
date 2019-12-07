@@ -300,13 +300,13 @@ test('Get offset from 123(r1)', () => {
   expect(utilities.getOffset("123(r1)")).toBe(123);
 });
 test('Get offset from 99999999999(r1)', () => {
-  expect(utilities.getOffset("99999999999(r1)")).toBe("");
+  expect(utilities.getOffset("99999999999(r1)")).toBe(undefined);
 });
 test('Get offset from 123r1)', () => {
-  expect(utilities.getOffset("123r1)")).toBe("");
+  expect(utilities.getOffset("123r1)")).toBe(undefined);
 });
 test('Get offset from (r1)', () => {
-  expect(utilities.getOffset("(r1)")).toBe("");
+  expect(utilities.getOffset("(r1)")).toBe(undefined);
 });
 test('Get offset from 0(r1)', () => {
   expect(utilities.getOffset("0(r1)")).toBe(0);
@@ -325,59 +325,79 @@ test('Get register from 123(R1)', () => {
 test('Get register from (R2)', () => {
   expect(utilities.getRegisterFromMemory("(R2)")).toBe(2);
 });
+test('Get register from (R0)', () => {
+  expect(utilities.getRegisterFromMemory("(R0)")).toBe(0);
+});
 test('Get register from 123r1)', () => {
-  expect(utilities.getRegisterFromMemory("123r1)")).toBe("");
+  expect(utilities.getRegisterFromMemory("123r1)")).toBe(undefined);
 });
 test('Get register from (R15)', () => {
   expect(utilities.getRegisterFromMemory("(R15)")).toBe(15);
 });
 test('Get register from 0(R128)', () => {
-  expect(utilities.getRegisterFromMemory("0(R128)")).toBe("");
+  expect(utilities.getRegisterFromMemory("0(R128)")).toBe(undefined);
 });
 test('Get register from -4(R1)', () => {
   expect(utilities.getRegisterFromMemory("-4(R1)")).toBe(1);
 });
 test('Get register from -4(invalidregister)', () => {
-  expect(utilities.getRegisterFromMemory("-4(invalidregister)")).toBe("");
+  expect(utilities.getRegisterFromMemory("-4(invalidregister)")).toBe(undefined);
 });
 
 /* is valid memory access */
-test('Get register from 123(R1)', () => {
+test('is Valid Memory Access 123(R1)', () => {
   expect(utilities.isValidMemoryAccess("123(R1)")).toBe(true);
 });
-test('Get register from (R2)', () => {
+test('is Valid Memory Access (R2)', () => {
   expect(utilities.isValidMemoryAccess("(R2)")).toBe(false);
 });
-test('Get register from 123r1)', () => {
+test('is Valid Memory Access 123r1)', () => {
   expect(utilities.isValidMemoryAccess("123r1)")).toBe(false);
 });
-test('Get register from (R15)', () => {
+test('is Valid Memory Access (R15)', () => {
   expect(utilities.isValidMemoryAccess("(R15)")).toBe(false);
 });
-test('Get register from 0(R128)', () => {
+test('is Valid Memory Access 0(R128)', () => {
   expect(utilities.isValidMemoryAccess("0(R128)")).toBe(false);
 });
-test('Get register from -4(R1)', () => {
+test('is Valid Memory Access -4(R1)', () => {
   expect(utilities.isValidMemoryAccess("-4(R1)")).toBe(true);
 });
-test('Get register from -4(invalidregister)', () => {
+test('is Valid Memory Access -4(invalidregister)', () => {
   expect(utilities.isValidMemoryAccess("-4(invalidregister)")).toBe(false);
+});
+test('is Valid Memory Access 0(R5)', () => {
+  expect(utilities.isValidMemoryAccess("0(R5)")).toBe(true);
 });
 
 /* is valid jump address */
-test('Get register from 123', () => {
+test('is valid Jump address 123', () => {
   expect(utilities.isValidJumpAddress("123")).toBe(true);
 });
-test('Get register from 0', () => {
+test('is valid Jump address 0', () => {
   expect(utilities.isValidJumpAddress("0")).toBe(true);
 });
-test('Get register from -4', () => {
+test('is valid Jump address -4', () => {
   expect(utilities.isValidJumpAddress("-4")).toBe(false);
 });
-test('Get register from 999999999999999', () => {
+test('is valid Jump address 999999999999999', () => {
   expect(utilities.isValidJumpAddress("999999999999999")).toBe(false);
 });
-test('Get register from R2', () => {
+test('is valid Jump address R2', () => {
   expect(utilities.isValidJumpAddress("R2")).toBe(false);
+});
+
+/* getOperator */
+test('Get ADD Operator', () => {
+  expect(utilities.getOperator("ADD")).toBe("+");
+});
+test('Get ADDI Operator', () => {
+  expect(utilities.getOperator("ADDI")).toBe("+");
+});
+test('Get JUMP Operator', () => {
+  expect(utilities.getOperator("JUMP")).toBe(-1);
+});
+test('Get SLT Operator', () => {
+  expect(utilities.getOperator("SLT")).toBe("<");
 });
 

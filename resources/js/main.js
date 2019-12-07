@@ -1,6 +1,8 @@
 import {setupEditor} from "./setupEditor.js"
+import {validateCode} from "./codeValidator.js"
 import * as utilities from "./utilities.js"
 import Instruction from "./Instruction.js"
+
 const editor=setupEditor();
 
 setupListeners();
@@ -32,12 +34,13 @@ function mainCode() {
     }
   }
 
+  let codeValidationResult;
   if (parsingError){
     i++;
     console.log("Parsing ERROR on line "+i+"\n"+parsingError);
   }
   else{
-    console.log(instructions)
+    codeValidationResult=validateCode(instructions);
   }
 }
 

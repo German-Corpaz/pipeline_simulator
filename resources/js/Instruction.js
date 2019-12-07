@@ -3,16 +3,25 @@ import * as utilities from "./utilities.js";
 export default class Instruction {
   constructor(instruction) {
     let instructionData = parseInstruction(instruction.trim());
-    if (instructionData.fullInstruction) this.fullInstruction = instructionData.fullInstruction;
-    if (instructionData.mnemonic) this.mnemonic = instructionData.mnemonic;
-    if (instructionData.destinationRegister) this.destinationRegister = instructionData.destinationRegister;
-    if (instructionData.sourceRegister1) this.sourceRegister1 = instructionData.sourceRegister1;
-    if (instructionData.sourceRegister2) this.sourceRegister2 = instructionData.sourceRegister2;
-    if (instructionData.constant) this.constant = instructionData.constant;
-    if (instructionData.branchAddress) this.branchAddress = instructionData.branchAddress;
-    if (instructionData.memoryOffset) this.memoryOffset = instructionData.memoryOffset;
-    if (instructionData.jumpAddress) this.jumpAddress = instructionData.jumpAddress;
-    if (instructionData.error) this.error = instructionData.error;
+    if (instructionData.fullInstruction !== undefined)
+      this.fullInstruction = instructionData.fullInstruction;
+    if (instructionData.mnemonic !== undefined)
+      this.mnemonic = instructionData.mnemonic;
+    if (instructionData.destinationRegister !== undefined)
+      this.destinationRegister = instructionData.destinationRegister;
+    if (instructionData.sourceRegister1 !== undefined)
+      this.sourceRegister1 = instructionData.sourceRegister1;
+    if (instructionData.sourceRegister2 !== undefined)
+      this.sourceRegister2 = instructionData.sourceRegister2;
+    if (instructionData.constant !== undefined)
+      this.constant = instructionData.constant;
+    if (instructionData.branchAddress !== undefined)
+      this.branchAddress = instructionData.branchAddress;
+    if (instructionData.memoryOffset !== undefined)
+      this.memoryOffset = instructionData.memoryOffset;
+    if (instructionData.jumpAddress !== undefined)
+      this.jumpAddress = instructionData.jumpAddress;
+    if (instructionData.error !== undefined) this.error = instructionData.error;
   }
 }
 
@@ -157,7 +166,7 @@ export function parseInstruction(instruction) {
         }
       }
     } else if (utilities.nopInstruction(mnemonic)) {
-      if (arrayParameters.length != 1 || arrayParameters[0]!="") {
+      if (arrayParameters.length != 1 || arrayParameters[0] != "") {
         parseResult.error =
           "The instruction " + mnemonic + " doesn't take parameters";
       }

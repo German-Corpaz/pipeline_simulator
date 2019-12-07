@@ -127,9 +127,9 @@ export function isValidConstant(number) {
 export function isValidMemoryAccess(memoryAccess) {
   let offset = getOffset(memoryAccess);
   let register = getRegisterFromMemory(memoryAccess);
-
-  if (offset != "" && register != "") return true;
-  else return false;
+  console.log(offset, register);
+  if (offset === undefined || register === undefined) return false;
+  else return true;
 }
 
 export function getOffset(memoryAccess) {
@@ -139,9 +139,10 @@ export function getOffset(memoryAccess) {
     offset += memoryAccess[i];
     i++;
   }
-  if (memoryAccess[i] != "(") return "";
+
+  if (memoryAccess[i] != "(") return undefined;
   if (isValidConstant(offset)) return getConstant(offset);
-  else return "";
+  else return undefined;
 }
 
 export function getRegisterFromMemory(memoryAccess) {
@@ -150,16 +151,16 @@ export function getRegisterFromMemory(memoryAccess) {
   while (i < memoryAccess.length && memoryAccess[i] != "(") {
     i++;
   }
-  if (memoryAccess[i] != "(") return "";
+  if (memoryAccess[i] != "(") return undefined;
   else i++;
   while (i < memoryAccess.length && memoryAccess[i] != ")") {
     register += memoryAccess[i];
     i++;
   }
-  if (memoryAccess[i] != ")") return "";
+  if (memoryAccess[i] != ")") return undefined;
 
   if (isValidRegister(register)) return getRegisterNumber(register);
-  else return "";
+  else return undefined;
 }
 
 export function getConstant(number) {
@@ -171,9 +172,43 @@ export function isValidJumpAddress(number) {
   let castNumber = Number(number);
   if (
     Number.isInteger(castNumber) &&
-    castNumber >=0 &&
+    castNumber >= 0 &&
     castNumber <= 2 ** 31 - 1
   )
     return true;
   else return false;
+}
+
+export function getOperator(mnemonic) {
+  switch (mnemonic) {
+    case "ADD":
+    case "ADDI":
+      return "+";
+    case "SUB":
+      return "-";
+    case "MUL":
+      return "*";
+    case "DIV":
+      return "/";
+    case "REM":
+      return "%";
+    case "AND":
+    case "ANDI":
+      return "&";
+    case "OR":
+    case "ORI":
+      return "|";
+    case "XOR":
+    case "XORI":
+      return "^";
+    case "SLT":
+    case "SLTI":
+      return "<";
+    case "SLL":
+      return "<<";
+    case "SLR":
+      return ">>";
+    default:
+      return -1;
+  }
 }
