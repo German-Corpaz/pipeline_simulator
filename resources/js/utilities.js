@@ -127,7 +127,6 @@ export function isValidConstant(number) {
 export function isValidMemoryAccess(memoryAccess) {
   let offset = getOffset(memoryAccess);
   let register = getRegisterFromMemory(memoryAccess);
-  console.log(offset, register);
   if (offset === undefined || register === undefined) return false;
   else return true;
 }

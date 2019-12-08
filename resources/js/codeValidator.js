@@ -1,66 +1,67 @@
-import * as utilities from "./utilities.js";
+import * as utilities from './utilities.js';
 
-export function validateCode(instructions) {
-  let registers = new Array(16).fill(0);
-  let memory = new Array(128).fill(0);
+export default function validateCode(instructions) {
+  const registers = new Array(16).fill(0);
+  const memory = new Array(128).fill(0);
 
   let pc = 0;
   let actualInstruction;
-  let warningMessage = "";
-  let errorMessage = "";
+  let warningMessage = '';
+  let errorMessage = '';
   let instructionCount = 0;
   const operateOnRegisters = (dest, source1, source2, operation) => {
     switch (operation) {
-      case "+":
+      case '+':
         registers[dest] = registers[source1] + registers[source2];
         break;
-      case "-":
+      case '-':
         registers[dest] = registers[source1] - registers[source2];
         break;
-      case "*":
+      case '*':
         registers[dest] = registers[source1] * registers[source2];
         break;
-      case "/":
+      case '/':
         registers[dest] = Math.floor(registers[source1] / registers[source2]);
         break;
-      case "%":
+      case '%':
         registers[dest] = registers[source1] % registers[source2];
         break;
-      case "&":
+      case '&':
         registers[dest] = registers[source1] & registers[source2];
         break;
-      case "|":
+      case '|':
         registers[dest] = registers[source1] | registers[source2];
         break;
-      case "^":
+      case '^':
         registers[dest] = registers[source1] ^ registers[source2];
         break;
-      case "<":
+      case '<':
         registers[dest] = registers[source1] < registers[source2] ? 1 : 0;
         break;
-      case "<<":
+      case '<<':
         registers[dest] = registers[source1] << registers[source2];
         break;
-      case ">>":
+      case '>>':
         registers[dest] = registers[source1] >> registers[source2];
         break;
+      default:
     }
   };
   const operateOnRegistersAndConstant = (dest, source, constant, operation) => {
     switch (operation) {
-      case "+":
+      case '+':
         registers[dest] = registers[source] + constant;
         break;
-      case "&":
+      case '&':
         registers[dest] = registers[source] & constant;
         break;
-      case "|":
+      case '|':
         registers[dest] = registers[source] | constant;
         break;
-      case "^":
+      case '^':
         registers[dest] = registers[source] ^ constant;
         break;
-      case "<":
+      case '<':
         registers[dest] = registers[source] < constant ? 1 : 0;
         break;
     }
@@ -100,10 +101,7 @@ export function validateCode(instructions) {
       let operator = utilities.getOperator(mnemonic);
       operateOnRegisters(dReg, s1Reg, s2Reg, operator);
       if (checkOverflow(dReg))
-        warningMessage +=
-          "Overflow Error on Operation " +
-          actualInstruction.fullInstruction +
-          "\n";
+        warningMessage += 'Overflow Error on Operation ' + actualInstruction.fullInstruction + '\n';
     } else if (utilities.twoRegistersOneConstantInstruction(mnemonic)) {
       let dReg = actualInstruction.destinationRegister;
       let s1Reg = actualInstruction.sourceRegister1;
@@ -111,24 +109,18 @@ export function validateCode(instructions) {
       let operator = utilities.getOperator(mnemonic);
       operateOnRegistersAndConstant(dReg, s1Reg, constant, operator);
       if (checkOverflow(dReg))
-        warningMessage +=
-          "Overflow Error on Operation " +
-          actualInstruction.fullInstruction +
-          "\n";
+        warningMessage += 'Overflow Error on Operation ' + actualInstruction.fullInstruction + '\n';
     } else if (utilities.memoryInstruction(mnemonic)) {
       let sReg1 = actualInstruction.sourceRegister1;
       let offset = actualInstruction.memoryOffset;
       let memoryAddress = registers[sReg1] + offset;
       if (isValidMemoryAddress(memoryAddress)) {
-        if (mnemonic == "LW")
-          registers[actualInstruction.destinationRegister] =
-            memory[memoryAddress];
-        else if (mnemonic == "SW")
+        if (mnemonic == 'LW')
+          registers[actualInstruction.destinationRegister] = memory[memoryAddress];
+        else if (mnemonic == 'SW')
           memory[memoryAddress] = registers[actualInstruction.sourceRegister2];
-      } else
-        errorMessage =
-          "Segmentation Fault, trying to access address " + memoryAddress;
-    } else if (mnemonic == "MOVE") {
+      } else errorMessage = 'Segmentation Fault, trying to access address ' + memoryAddress;
+    } else if (mnemonic == 'MOVE') {
       registers[actualInstruction.destinationRegister] =
         registers[actualInstruction.sourceRegister1];
     } else if (utilities.branchInstruction(mnemonic)) {
@@ -137,30 +129,28 @@ export function validateCode(instructions) {
       let relativeBranch = actualInstruction.branchAddress + pc;
 
       if (isValidInstructionAddress(relativeBranch)) {
-        if (mnemonic == "BEQ") {
+        if (mnemonic == 'BEQ') {
           if (registers[source1] == registers[source2]) pc = relativeBranch;
-        } else if (mnemonic == "BNE") {
+        } else if (mnemonic == 'BNE') {
           if (registers[source1] != registers[source2]) pc = relativeBranch;
         }
       } else {
-        errorMessage = "Invalid branch address " + relativeBranch;
+        errorMessage = 'Invalid branch address ' + relativeBranch;
       }
-    } else if (mnemonic == "JUMP") {
+    } else if (mnemonic == 'JUMP') {
       let jumpAddress = actualInstruction.jumpAddress;
-      if (isValidInstructionAddress(jumpAddress)) pc = jumpAddress;
-      else errorMessage = "Invalid jump address " + jumpAddress;
+      pc = jumpAddress;
     }
 
-    if (instructionCount > 100) errorMessage = "Instruction limit reached (100)";
-    if (errorMessage != "")  break;
+    if (instructionCount > 100) errorMessage = 'Instruction limit reached (100)';
+    if (errorMessage != '') break;
   }
 
-  let result={
-      errorMessage,
-      warningMessage,
-      registers,
-      memory
-  }
-  console.log(result)
+  const result = {
+    registers,
+    memory
+  };
+  if (errorMessage != '') result.errorMessage = errorMessage;
+  if (warningMessage != '') result.warningMessage = warningMessage;
   return result;
 }
