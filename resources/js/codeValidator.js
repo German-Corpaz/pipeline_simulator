@@ -8,7 +8,7 @@ export function validateCode(instructions) {
   let actualInstruction;
   let warningMessage = '';
   let errorMessage = '';
-  let instructionCount = 0;
+  let executedInstructions = [];
   const operateOnRegisters = (dest, source1, source2, operation) => {
     switch (operation) {
       case '+':
@@ -89,8 +89,8 @@ export function validateCode(instructions) {
   };
 
   while (pc >= 0 && pc < instructions.length) {
-    instructionCount++;
     actualInstruction = instructions[pc];
+    executedInstructions.push(actualInstruction);
     pc++;
     let mnemonic = actualInstruction.mnemonic;
 
@@ -143,14 +143,15 @@ export function validateCode(instructions) {
       else pc = jumpAddress;
     }
 
-    if (instructionCount > 100) errorMessage = 'Instruction limit reached (100)';
+    if (executedInstructions.length > 100) errorMessage = 'Instruction limit reached (100)';
     if (errorMessage != '') break;
   }
 
   const result = {
     registers,
     memory,
-    instructionCount
+    executedInstructions,
+    instructionCount: executedInstructions.length
   };
   if (errorMessage != '') result.errorMessage = errorMessage;
   if (warningMessage != '') result.warningMessage = warningMessage;

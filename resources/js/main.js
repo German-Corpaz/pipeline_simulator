@@ -2,6 +2,7 @@ import { setupEditor } from './setupEditor.js';
 import { validateCode } from './codeValidator.js';
 import * as utilities from './utilities.js';
 import Instruction from './Instruction.js';
+import * as pipeline from './pipelineGenerator.js';
 
 const editor = setupEditor();
 
@@ -36,5 +37,9 @@ function mainCode() {
   } else {
     codeValidationResult = validateCode(instructions);
     console.log(codeValidationResult);
+    if (!codeValidationResult.errorMessage) {
+      codeValidationResult.instructions = instructions;
+      pipeline.getMatrixWithoutPipelining(codeValidationResult);
+    } else console.log(codeValidationResult.errorMessage);
   }
 }
