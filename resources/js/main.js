@@ -35,5 +35,6 @@ function mainCode() {
     console.log('Parsing ERROR on line ' + i + '\n' + parsingError);
   } else {
     codeValidationResult = validateCode(instructions);
+    console.log(codeValidationResult);
   }
 }

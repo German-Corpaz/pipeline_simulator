@@ -139,7 +139,8 @@ export function validateCode(instructions) {
       }
     } else if (mnemonic == 'JUMP') {
       let jumpAddress = actualInstruction.jumpAddress;
-      pc = jumpAddress;
+      if (jumpAddress >= instructions.length) errorMessage = 'Jumo Address Invalid ' + jumpAddress;
+      else pc = jumpAddress;
     }
 
     if (instructionCount > 100) errorMessage = 'Instruction limit reached (100)';
@@ -148,7 +149,8 @@ export function validateCode(instructions) {
 
   const result = {
     registers,
-    memory
+    memory,
+    instructionCount
   };
   if (errorMessage != '') result.errorMessage = errorMessage;
   if (warningMessage != '') result.warningMessage = warningMessage;
