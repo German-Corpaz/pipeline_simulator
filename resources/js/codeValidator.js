@@ -1,6 +1,6 @@
 import * as utilities from './utilities.js';
 
-export default function validateCode(instructions) {
+export function validateCode(instructions) {
   const registers = new Array(16).fill(0);
   const memory = new Array(128).fill(0);
 

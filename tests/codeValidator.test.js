@@ -1,4 +1,3 @@
-/* eslint-disable import/extensions */
 import * as validator from '../resources/js/codeValidator.js';
 import Instruction from '../resources/js/Instruction.js';
 
