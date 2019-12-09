@@ -99,9 +99,15 @@ export function validateCode(instructions) {
       let s1Reg = actualInstruction.sourceRegister1;
       let s2Reg = actualInstruction.sourceRegister2;
       let operator = utilities.getOperator(mnemonic);
-      operateOnRegisters(dReg, s1Reg, s2Reg, operator);
-      if (checkOverflow(dReg))
-        warningMessage += 'Overflow Error on Operation ' + actualInstruction.fullInstruction + '\n';
+
+      if (registers[s2Reg] == 0 && mnemonic == 'DIV')
+        errorMessage = 'Division by 0 on ' + actualInstruction.fullInstruction;
+      else {
+        operateOnRegisters(dReg, s1Reg, s2Reg, operator);
+        if (checkOverflow(dReg))
+          warningMessage +=
+            'Overflow Error on Operation ' + actualInstruction.fullInstruction + '\n';
+      }
     } else if (utilities.twoRegistersOneConstantInstruction(mnemonic)) {
       let dReg = actualInstruction.destinationRegister;
       let s1Reg = actualInstruction.sourceRegister1;

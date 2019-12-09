@@ -453,3 +453,13 @@ test('Reach limit of operations', () => {
   }
   expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
 });
+test('Division by 0', () => {
+  const codeLines = ['DIV R1,R1,R1'];
+  const instructions = [];
+  for (let i = 0; i < codeLines.length; i += 1) {
+    const line = codeLines[i];
+    const newInstruction = new Instruction(line);
+    instructions.push(newInstruction);
+  }
+  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
+});

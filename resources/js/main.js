@@ -36,10 +36,10 @@ function mainCode() {
     console.log('Parsing ERROR on line ' + i + '\n' + parsingError);
   } else {
     codeValidationResult = validateCode(instructions);
-    console.log(codeValidationResult);
     if (!codeValidationResult.errorMessage) {
       codeValidationResult.instructions = instructions;
-      pipeline.getMatrixWithoutPipelining(codeValidationResult);
+      console.log(codeValidationResult);
+      pipeline.getMatrixNotForwardingPipelining(codeValidationResult);
     } else console.log(codeValidationResult.errorMessage);
   }
 }
