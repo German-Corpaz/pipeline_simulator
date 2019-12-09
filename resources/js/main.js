@@ -17,10 +17,12 @@ function mainCode() {
   let instructions = [];
   let parsingError = '';
   let i = 0;
+  let index = 0;
   for (i = 0; i < codeLines.length; i++) {
     let line = codeLines[i];
     if (!utilities.blankLine(line)) {
-      let newInstruction = new Instruction(line);
+      let newInstruction = new Instruction(line, index);
+      index++;
       if (newInstruction.error) {
         parsingError = newInstruction.error;
         break;

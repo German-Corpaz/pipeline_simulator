@@ -52,7 +52,6 @@ export function getMatrixNotForwardingPipelining(result) {
   let pc = 0;
   let cycle = 0;
   let instructionsExecuted = [];
-  let actualInstruction = null;
   let usedRegisters = [];
   let cyclesInExecute = 0;
   const instructionsInPipe = () => {
@@ -178,16 +177,25 @@ export function getMatrixNotForwardingPipelining(result) {
     } else if (utilities.branchInstruction(mnemonic)) {
       let source1 = instruction.sourceRegister1;
       let source2 = instruction.sourceRegister2;
-      let relativeBranch = instruction.branchAddress + pc;
-
+      let relativeBranch = instruction.branchAddress + instruction.index + 1;
       if (mnemonic == 'BEQ') {
-        if (registers[source1] == registers[source2]) pc = relativeBranch;
+        if (registers[source1] == registers[source2]) {
+          pc = relativeBranch;
+          fetchStage = null;
+          decodeStage = null;
+        }
       } else if (mnemonic == 'BNE') {
-        if (registers[source1] != registers[source2]) pc = relativeBranch;
+        if (registers[source1] != registers[source2]) {
+          pc = relativeBranch;
+          fetchStage = null;
+          decodeStage = null;
+        }
       }
     } else if (mnemonic == 'JUMP') {
       let jumpAddress = instruction.jumpAddress;
       pc = jumpAddress;
+      fetchStage = null;
+      decodeStage = null;
     }
   };
   const accessMemory = instruction => {
@@ -269,5 +277,6 @@ export function getMatrixNotForwardingPipelining(result) {
   }
   console.log(registers, memory);
   console.log(matrix);
+  console.log(instructionsExecuted);
   return matrix;
 }
