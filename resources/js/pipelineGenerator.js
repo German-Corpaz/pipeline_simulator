@@ -275,8 +275,6 @@ export function getMatrixNotForwardingPipelining(result) {
     cycle++;
     if (cycle > 500) break;
   }
-  console.log(registers, memory);
-  console.log(matrix);
-  console.log(instructionsExecuted);
+
   return matrix;
 }

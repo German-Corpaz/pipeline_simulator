@@ -410,7 +410,7 @@ test('Jump Operations', () => {
 });
 
 /* Test of errors */
-test('Overflow warning', () => {
+test('Overflow Error', () => {
   const codeLines = ['ADDI R1,R2,1000000', 'MUL R2,R1,R1'];
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
@@ -418,7 +418,7 @@ test('Overflow warning', () => {
     const newInstruction = new Instruction(line);
     instructions.push(newInstruction);
   }
-  expect(validator.validateCode(instructions)).toHaveProperty('warningMessage');
+  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
 });
 
 test('Segmentation Fault', () => {

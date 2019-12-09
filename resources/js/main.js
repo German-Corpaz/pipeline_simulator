@@ -18,6 +18,8 @@ function mainCode() {
   let parsingError = '';
   let i = 0;
   let index = 0;
+  let codeValidationResult;
+
   for (i = 0; i < codeLines.length; i++) {
     let line = codeLines[i];
     if (!utilities.blankLine(line)) {
@@ -32,15 +34,15 @@ function mainCode() {
     }
   }
 
-  let codeValidationResult;
   if (parsingError) {
+    /* TODO show parsing error in console */
     i++;
     console.log('Parsing ERROR on line ' + i + '\n' + parsingError);
   } else {
     codeValidationResult = validateCode(instructions);
+    console.log(codeValidationResult);
     if (!codeValidationResult.errorMessage) {
       codeValidationResult.instructions = instructions;
-      console.log(codeValidationResult);
       pipeline.getMatrixNotForwardingPipelining(codeValidationResult);
     } else console.log(codeValidationResult.errorMessage);
   }

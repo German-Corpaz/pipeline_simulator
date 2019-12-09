@@ -1,92 +1,15 @@
 import * as utilities from './utilities.js';
 
 export function validateCode(instructions) {
-  const registers = new Array(16).fill(0);
-  const memory = new Array(128).fill(0);
+  const MEMORY_SIZE = 128;
+  const MAX_INSTRUCTIONS = 200;
+  let registers = new Array(16).fill(0);
+  const memory = new Array(MEMORY_SIZE).fill(0);
 
   let pc = 0;
   let actualInstruction;
-  let warningMessage = '';
   let errorMessage = '';
   let executedInstructions = [];
-  const operateOnRegisters = (dest, source1, source2, operation) => {
-    switch (operation) {
-      case '+':
-        registers[dest] = registers[source1] + registers[source2];
-        break;
-      case '-':
-        registers[dest] = registers[source1] - registers[source2];
-        break;
-      case '*':
-        registers[dest] = registers[source1] * registers[source2];
-        break;
-      case '/':
-        registers[dest] = Math.floor(registers[source1] / registers[source2]);
-        break;
-      case '%':
-        registers[dest] = registers[source1] % registers[source2];
-        break;
-      case '&':
-        registers[dest] = registers[source1] & registers[source2];
-        break;
-      case '|':
-        registers[dest] = registers[source1] | registers[source2];
-        break;
-      case '^':
-        registers[dest] = registers[source1] ^ registers[source2];
-        break;
-      case '<':
-        registers[dest] = registers[source1] < registers[source2] ? 1 : 0;
-        break;
-      case '<<':
-        registers[dest] = registers[source1] << registers[source2];
-        break;
-      case '>>':
-        registers[dest] = registers[source1] >> registers[source2];
-        break;
-      default:
-    }
-  };
-  const operateOnRegistersAndConstant = (dest, source, constant, operation) => {
-    switch (operation) {
-      case '+':
-        registers[dest] = registers[source] + constant;
-        break;
-      case '&':
-        registers[dest] = registers[source] & constant;
-        break;
-      case '|':
-        registers[dest] = registers[source] | constant;
-        break;
-      case '^':
-        registers[dest] = registers[source] ^ constant;
-        break;
-      case '<':
-        registers[dest] = registers[source] < constant ? 1 : 0;
-        break;
-    }
-  };
-  const checkOverflow = dest => {
-    let maxValue = 2 ** 31 - 1;
-    let minValue = -(2 ** 31);
-    let overflow = false;
-    if (registers[dest] > maxValue) {
-      registers[dest] = maxValue;
-      overflow = true;
-    }
-    if (registers[dest] < minValue) {
-      overflow = true;
-      registers[dest] = minValue;
-    }
-    return overflow;
-  };
-
-  const isValidMemoryAddress = memoryAddress => {
-    return memoryAddress >= 0 && memoryAddress <= 127;
-  };
-  const isValidInstructionAddress = pc => {
-    return pc >= 0 && pc < instructions.length;
-  };
 
   while (pc >= 0 && pc < instructions.length) {
     actualInstruction = instructions[pc];
@@ -95,32 +18,34 @@ export function validateCode(instructions) {
     let mnemonic = actualInstruction.mnemonic;
 
     if (utilities.threeRegisterInstruction(mnemonic)) {
-      let dReg = actualInstruction.destinationRegister;
-      let s1Reg = actualInstruction.sourceRegister1;
-      let s2Reg = actualInstruction.sourceRegister2;
-      let operator = utilities.getOperator(mnemonic);
-
-      if (registers[s2Reg] == 0 && mnemonic == 'DIV')
+      let operationVariables = {
+        destinationRegister: actualInstruction.destinationRegister,
+        sourceRegister1: actualInstruction.sourceRegister1,
+        sourceRegister2: actualInstruction.sourceRegister2,
+        operator: utilities.getOperator(mnemonic)
+      };
+      if (mnemonic == 'DIV' && registers[operationVariables.sourceRegister2] == 0)
         errorMessage = 'Division by 0 on ' + actualInstruction.fullInstruction;
       else {
-        operateOnRegisters(dReg, s1Reg, s2Reg, operator);
-        if (checkOverflow(dReg))
-          warningMessage +=
-            'Overflow Error on Operation ' + actualInstruction.fullInstruction + '\n';
+        registers = utilities.operateOnRegisters(registers, operationVariables);
+        if (utilities.overflow(registers[operationVariables.destinationRegister]))
+          errorMessage = 'Overflow Error on Operation ' + actualInstruction.fullInstruction;
       }
     } else if (utilities.twoRegistersOneConstantInstruction(mnemonic)) {
-      let dReg = actualInstruction.destinationRegister;
-      let s1Reg = actualInstruction.sourceRegister1;
-      let constant = actualInstruction.constant;
-      let operator = utilities.getOperator(mnemonic);
-      operateOnRegistersAndConstant(dReg, s1Reg, constant, operator);
-      if (checkOverflow(dReg))
-        warningMessage += 'Overflow Error on Operation ' + actualInstruction.fullInstruction + '\n';
+      let operationVariables = {
+        destinationRegister: actualInstruction.destinationRegister,
+        sourceRegister1: actualInstruction.sourceRegister1,
+        constant: actualInstruction.constant,
+        operator: utilities.getOperator(mnemonic)
+      };
+      registers = utilities.operateOnRegistersAndConstant(registers, operationVariables);
+      if (utilities.overflow(registers[operationVariables.destinationRegister]))
+        errorMessage = 'Overflow Error on Operation ' + actualInstruction.fullInstruction;
     } else if (utilities.memoryInstruction(mnemonic)) {
       let sReg1 = actualInstruction.sourceRegister1;
       let offset = actualInstruction.memoryOffset;
       let memoryAddress = registers[sReg1] + offset;
-      if (isValidMemoryAddress(memoryAddress)) {
+      if (utilities.isValidMemoryAddress(memoryAddress)) {
         if (mnemonic == 'LW')
           registers[actualInstruction.destinationRegister] = memory[memoryAddress];
         else if (mnemonic == 'SW')
@@ -134,7 +59,7 @@ export function validateCode(instructions) {
       let source2 = actualInstruction.sourceRegister2;
       let relativeBranch = actualInstruction.branchAddress + pc;
 
-      if (isValidInstructionAddress(relativeBranch)) {
+      if (utilities.isValidInstructionAddress(relativeBranch, instructions.length)) {
         if (mnemonic == 'BEQ') {
           if (registers[source1] == registers[source2]) pc = relativeBranch;
         } else if (mnemonic == 'BNE') {
@@ -149,7 +74,8 @@ export function validateCode(instructions) {
       else pc = jumpAddress;
     }
 
-    if (executedInstructions.length > 100) errorMessage = 'Instruction limit reached (100)';
+    if (executedInstructions.length > MAX_INSTRUCTIONS)
+      errorMessage = 'Instruction limit reached (' + MAX_INSTRUCTIONS + ')';
     if (errorMessage != '') break;
   }
 
@@ -160,6 +86,5 @@ export function validateCode(instructions) {
     instructionCount: executedInstructions.length
   };
   if (errorMessage != '') result.errorMessage = errorMessage;
-  if (warningMessage != '') result.warningMessage = warningMessage;
   return result;
 }
