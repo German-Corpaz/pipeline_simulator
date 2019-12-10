@@ -36,8 +36,11 @@ export function getMatrixWithoutPipelining(result) {
     matrix[i].push('WB');
     cycle++;
   }
-  console.log(matrix);
-  return matrix;
+  let output = {
+    matrix,
+    instructions
+  };
+  return output;
 }
 
 export function getMatrixNotForwardingPipelining(result) {
@@ -208,9 +211,10 @@ export function getMatrixNotForwardingPipelining(result) {
     cycle++;
     if (cycle > 500) break;
   }
-  console.log(matrix);
-  console.log(instructionsExecuted);
-  console.log(registers);
-  console.log(memory);
-  return matrix;
+
+  let output = {
+    matrix,
+    instructions: instructionsExecuted
+  };
+  return output;
 }

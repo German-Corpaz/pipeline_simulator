@@ -3,6 +3,7 @@ import { validateCode } from './codeValidator.js';
 import * as utilities from './utilities.js';
 import Instruction from './Instruction.js';
 import * as pipeline from './pipelineGenerator.js';
+import { drawChart } from './chartGenerator.js';
 
 const editor = setupEditor();
 
@@ -45,7 +46,8 @@ function mainCode() {
       console.log(codeValidationResult.errorMessage);
     } else {
       codeValidationResult.instructions = instructions;
-      pipeline.getMatrixNotForwardingPipelining(codeValidationResult);
+      let pipelineResult = pipeline.getMatrixNotForwardingPipelining(codeValidationResult);
+      drawChart(pipelineResult);
     }
   }
 }

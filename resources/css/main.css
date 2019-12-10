@@ -14,7 +14,7 @@
 
 .container .left-container {
   width: 500px;
-  background: #2D3748;
+  background: #2d3748;
   padding: 30px;
   min-width: 400px;
 }
@@ -35,10 +35,10 @@
 
 .container .left-container .primary {
   padding: 12px 16px;
-  background: #2B6CB0;
-  color: #EBF8FF;
-  -webkit-transition: .3s;
-  transition: .3s;
+  background: #2b6cb0;
+  color: #ebf8ff;
+  -webkit-transition: 0.3s;
+  transition: 0.3s;
   float: right;
   cursor: pointer;
 }
@@ -53,7 +53,12 @@
 
 .container .right-container {
   padding: 30px;
-  background: #4A5568;
+  background: #4a5568;
   width: 1360px;
+}
+
+.amcharts-AmChartsLogo-group {
+  display: none;
+  pointer-events: none;
 }
 /*# sourceMappingURL=main.css.map */
