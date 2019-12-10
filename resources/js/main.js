@@ -40,10 +40,12 @@ function mainCode() {
     console.log('Parsing ERROR on line ' + i + '\n' + parsingError);
   } else {
     codeValidationResult = validateCode(instructions);
-    console.log(codeValidationResult);
-    if (!codeValidationResult.errorMessage) {
+    if (codeValidationResult.errorMessage) {
+      /* TODO show runtime error in console */
+      console.log(codeValidationResult.errorMessage);
+    } else {
       codeValidationResult.instructions = instructions;
       pipeline.getMatrixNotForwardingPipelining(codeValidationResult);
-    } else console.log(codeValidationResult.errorMessage);
+    }
   }
 }

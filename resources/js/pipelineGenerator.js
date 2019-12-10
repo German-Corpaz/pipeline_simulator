@@ -1,5 +1,6 @@
 import * as utilities from './utilities.js';
 export function getMatrixWithoutPipelining(result) {
+  const DIV_AND_MULT_CYCLES = 4;
   let instructions = result.executedInstructions;
   let amountOfInstructionsExecuted = instructions.length;
 
@@ -22,7 +23,7 @@ export function getMatrixWithoutPipelining(result) {
       instructions[i].mnemonic == 'DIV' ||
       instructions[i].mnemonic == 'REM'
     ) {
-      for (let j = 0; j < 4; j++) {
+      for (let j = 0; j < DIV_AND_MULT_CYCLES; j++) {
         matrix[i].push('E');
         cycle++;
       }
@@ -35,15 +36,17 @@ export function getMatrixWithoutPipelining(result) {
     matrix[i].push('WB');
     cycle++;
   }
-
   console.log(matrix);
+  return matrix;
 }
 
 export function getMatrixNotForwardingPipelining(result) {
+  const MEMORY_SIZE = 128;
+  const DIV_AND_MULT_CYCLES = 4;
   let matrix = [];
   let instructions = result.instructions;
-  const registers = new Array(16).fill(0);
-  const memory = new Array(128).fill(0);
+  let registers = new Array(16).fill(0);
+  const memory = new Array(MEMORY_SIZE).fill(0);
   let fetchStage = null;
   let decodeStage = null;
   let memoryStage = null;
@@ -53,7 +56,7 @@ export function getMatrixNotForwardingPipelining(result) {
   let cycle = 0;
   let instructionsExecuted = [];
   let usedRegisters = [];
-  let cyclesInExecute = 0;
+  let cyclesInExecute = 1;
   const instructionsInPipe = () => {
     let instructionInPipe = false;
     instructionInPipe =
@@ -81,99 +84,37 @@ export function getMatrixNotForwardingPipelining(result) {
     if (instruction.destinationRegister != undefined)
       usedRegisters.push(instruction.destinationRegister);
   };
-  const releaseRegister = instruction => {
+  const releaseRegisterFromInstruction = instruction => {
     if (instruction.destinationRegister != undefined)
       usedRegisters.splice(usedRegisters.indexOf(instruction.destinationRegister), 1);
   };
-  const operateOnRegisters = (dest, source1, source2, operation) => {
-    switch (operation) {
-      case '+':
-        registers[dest] = registers[source1] + registers[source2];
-        break;
-      case '-':
-        registers[dest] = registers[source1] - registers[source2];
-        break;
-      case '*':
-        registers[dest] = registers[source1] * registers[source2];
-        break;
-      case '/':
-        registers[dest] = Math.floor(registers[source1] / registers[source2]);
-        break;
-      case '%':
-        registers[dest] = registers[source1] % registers[source2];
-        break;
-      case '&':
-        registers[dest] = registers[source1] & registers[source2];
-        break;
-      case '|':
-        registers[dest] = registers[source1] | registers[source2];
-        break;
-      case '^':
-        registers[dest] = registers[source1] ^ registers[source2];
-        break;
-      case '<':
-        registers[dest] = registers[source1] < registers[source2] ? 1 : 0;
-        break;
-      case '<<':
-        registers[dest] = registers[source1] << registers[source2];
-        break;
-      case '>>':
-        registers[dest] = registers[source1] >> registers[source2];
-        break;
-      default:
-    }
-  };
-  const operateOnRegistersAndConstant = (dest, source, constant, operation) => {
-    switch (operation) {
-      case '+':
-        registers[dest] = registers[source] + constant;
-        break;
-      case '&':
-        registers[dest] = registers[source] & constant;
-        break;
-      case '|':
-        registers[dest] = registers[source] | constant;
-        break;
-      case '^':
-        registers[dest] = registers[source] ^ constant;
-        break;
-      case '<':
-        registers[dest] = registers[source] < constant ? 1 : 0;
-        break;
-    }
-  };
-  const checkOverflow = dest => {
-    let maxValue = 2 ** 31 - 1;
-    let minValue = -(2 ** 31);
-    let overflow = false;
-    if (registers[dest] > maxValue) {
-      registers[dest] = maxValue;
-      overflow = true;
-    }
-    if (registers[dest] < minValue) {
-      overflow = true;
-      registers[dest] = minValue;
-    }
-    return overflow;
-  };
+
   const executeInstruction = instruction => {
     let mnemonic = instruction.mnemonic;
     if (utilities.threeRegisterInstruction(mnemonic)) {
-      let dReg = instruction.destinationRegister;
-      let s1Reg = instruction.sourceRegister1;
-      let s2Reg = instruction.sourceRegister2;
-      let operator = utilities.getOperator(mnemonic);
-      operateOnRegisters(dReg, s1Reg, s2Reg, operator);
-      checkOverflow(dReg);
+      let variables = {
+        destinationRegister: instruction.destinationRegister,
+        sourceRegister1: instruction.sourceRegister1,
+        sourceRegister2: instruction.sourceRegister2,
+        operator: utilities.getOperator(mnemonic)
+      };
+      registers = utilities.operateOnRegisters(registers, variables);
     } else if (utilities.twoRegistersOneConstantInstruction(mnemonic)) {
-      let dReg = instruction.destinationRegister;
-      let s1Reg = instruction.sourceRegister1;
-      let constant = instruction.constant;
-      let operator = utilities.getOperator(mnemonic);
-      operateOnRegistersAndConstant(dReg, s1Reg, constant, operator);
-      checkOverflow(dReg);
+      let variables = {
+        destinationRegister: instruction.destinationRegister,
+        sourceRegister1: instruction.sourceRegister1,
+        constant: instruction.constant,
+        operator: utilities.getOperator(mnemonic)
+      };
+      registers = utilities.operateOnRegistersAndConstant(registers, variables);
     } else if (mnemonic == 'MOVE') {
       registers[instruction.destinationRegister] = registers[instruction.sourceRegister1];
+    } else if (utilities.memoryInstruction(mnemonic)) {
+      let sReg1 = instruction.sourceRegister1;
+      let offset = instruction.memoryOffset;
+      let memoryAddress = registers[sReg1] + offset;
+      if (mnemonic == 'LW') registers[instruction.destinationRegister] = memory[memoryAddress];
+      else if (mnemonic == 'SW') memory[memoryAddress] = registers[instruction.sourceRegister2];
     } else if (utilities.branchInstruction(mnemonic)) {
       let source1 = instruction.sourceRegister1;
       let source2 = instruction.sourceRegister2;
@@ -198,32 +139,23 @@ export function getMatrixNotForwardingPipelining(result) {
       decodeStage = null;
     }
   };
-  const accessMemory = instruction => {
-    let mnemonic = instruction.mnemonic;
-    if (utilities.memoryInstruction(mnemonic)) {
-      let sReg1 = instruction.sourceRegister1;
-      let offset = instruction.memoryOffset;
-      let memoryAddress = registers[sReg1] + offset;
-      if (mnemonic == 'LW') registers[instruction.destinationRegister] = memory[memoryAddress];
-      else if (mnemonic == 'SW') memory[memoryAddress] = registers[instruction.sourceRegister2];
-    }
-  };
+
   while (pc < instructions.length || instructionsInPipe()) {
     if (writebackStage) {
-      releaseRegister(writebackStage.instruction);
+      let mnemonic = writebackStage.instruction.mnemonic;
+      if (!utilities.branchInstruction(mnemonic)) executeInstruction(writebackStage.instruction);
+      releaseRegisterFromInstruction(writebackStage.instruction);
       writebackStage = null;
     }
     if (memoryStage) {
-      accessMemory(memoryStage.instruction);
       writebackStage = memoryStage;
       matrix[writebackStage.index].push('WB');
       memoryStage = null;
     }
     if (executeStage) {
       if (isMultipleCycleInstruction(executeStage.instruction)) {
-        if (cyclesInExecute == 3) {
-          executeInstruction(executeStage.instruction);
-          cyclesInExecute = 0;
+        if (cyclesInExecute == DIV_AND_MULT_CYCLES) {
+          cyclesInExecute = 1;
           memoryStage = executeStage;
           matrix[memoryStage.index].push('M');
           executeStage = null;
@@ -232,7 +164,8 @@ export function getMatrixNotForwardingPipelining(result) {
           matrix[executeStage.index].push('E');
         }
       } else {
-        executeInstruction(executeStage.instruction);
+        let mnemonic = executeStage.instruction.mnemonic;
+        if (utilities.branchInstruction(mnemonic)) executeInstruction(executeStage.instruction);
         memoryStage = executeStage;
         matrix[memoryStage.index].push('M');
         executeStage = null;
@@ -275,6 +208,9 @@ export function getMatrixNotForwardingPipelining(result) {
     cycle++;
     if (cycle > 500) break;
   }
-
+  console.log(matrix);
+  console.log(instructionsExecuted);
+  console.log(registers);
+  console.log(memory);
   return matrix;
 }
