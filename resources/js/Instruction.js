@@ -1,5 +1,5 @@
 import * as utilities from './utilities.js';
-
+import * as parserUtils from './utils/parserUtils.js';
 export default class Instruction {
   constructor(instruction, index) {
     let instructionData = parseInstruction(instruction.trim());
@@ -24,7 +24,7 @@ export default class Instruction {
 }
 
 export function parseInstruction(instruction) {
-  let mnemonic = utilities.getMnemonic(instruction);
+  let mnemonic = parserUtils.getMnemonic(instruction);
   let parameters;
   let fullInstruction;
   let parseResult = {};
@@ -35,8 +35,8 @@ export function parseInstruction(instruction) {
   let branchAddress;
   let memoryOffset;
   let jumpAddress;
-  if (utilities.isValidMnemonic(mnemonic)) {
-    parameters = utilities.getParameters(instruction);
+  if (parserUtils.isValidMnemonic(mnemonic)) {
+    parameters = parserUtils.getParameters(instruction);
     fullInstruction = mnemonic + ' ' + parameters;
     let arrayParameters = parameters.split(',');
     if (utilities.threeRegisterInstruction(mnemonic)) {
@@ -145,7 +145,7 @@ export function parseInstruction(instruction) {
         }
       }
     } else if (utilities.jumpInstruction(mnemonic)) {
-      if (arrayParameters.length != 1) {
+      if (arrayParameters.length != 1 || arrayParameters[0] == '') {
         parseResult.error =
           'The instruction ' + mnemonic + ' takes one positive constant as parameter';
       } else {

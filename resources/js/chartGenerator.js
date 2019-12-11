@@ -7,7 +7,6 @@ export function drawChart(pipelineResult) {
   chart = am4core.create('ganttChart', am4charts.XYChart);
   chart.hiddenState.properties.opacity = 0;
   chart.data = dataset;
-  chart.paddingRight = 30;
 
   var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
   categoryAxis.dataFields.category = 'name';
