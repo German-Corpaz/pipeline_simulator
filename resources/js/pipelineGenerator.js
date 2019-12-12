@@ -1,12 +1,12 @@
-import * as instructionSet from './instructionSet.js';
 import * as parserUtils from './utils/parserUtils.js';
 import * as runtimeUtils from './utils/runtimeUtils.js';
 import * as pipelineUtils from './utils/pipelineUtils.js';
+import { architecture } from './architecture.js';
 export function noPipelineMatrix(result) {
-  const MULT_CYCLES = instructionSet.multCycles;
-  const DIV_CYCLES = instructionSet.divCycles;
-  const READMEMORY_CYCLES = instructionSet.readMemoryCycles;
-  const WRITEMEMORY_CYCLES = instructionSet.writeMemoryCycles;
+  const MULT_CYCLES = 4;
+  const DIV_CYCLES = 4;
+  const READMEMORY_CYCLES = 2;
+  const WRITEMEMORY_CYCLES = 2;
   let instructions = result.executedInstructions;
 
   let matrix = [];
@@ -259,4 +259,31 @@ export function basicPipeline(result) {
     instructions: instructionsExecuted
   };
   return output;
+}
+
+export function basicPipeline2(result) {
+  const MULT_CYCLES = 4;
+  const DIV_CYCLES = 4;
+  const READMEMORY_CYCLES = 2;
+  const WRITEMEMORY_CYCLES = 2;
+  const MEMORY_SIZE = architecture.memory;
+  const MAX_INSTRUCTIONS = architecture.maxInstructions;
+  const REGISTERS = architecture.registers;
+
+  let registers = new Array(REGISTERS).fill(0);
+  let memory = new Array(MEMORY_SIZE).fill(0);
+  let pc = 0;
+  let instructions = result.instructions;
+
+  let fetchStage = null;
+  let decodeStage = null;
+  let memoryStage = null;
+  let writebackStage = null;
+  let executeStage = null;
+
+  let cycle = 0;
+  let instructionsExecuted = [];
+  let usedRegisters = [];
+  let cyclesInExecute = 0;
+  let cyclesInMemory = 0;
 }

@@ -1,16 +1,16 @@
 import * as runtimeUtils from './utils/runtimeUtils.js';
-import * as instructionSet from './instructionSet.js';
+import { architecture } from './architecture.js';
 export function validateCode(instructions) {
-  const MEMORY_SIZE = instructionSet.memorySize;
-  const MAX_INSTRUCTIONS = instructionSet.maxInstructions;
-  const REGISTERS = instructionSet.numberOfRegisters;
+  const MEMORY_SIZE = architecture.memory;
+  const MAX_INSTRUCTIONS = architecture.maxInstructions;
+  const REGISTERS = architecture.registers;
 
   let registers = new Array(REGISTERS).fill(0);
   let memory = new Array(MEMORY_SIZE).fill(0);
   let pc = 0;
 
   let actualInstruction;
-  let errorMessage = '';
+  let error = '';
   let executedInstructions = [];
 
   while (pc >= 0 && pc < instructions.length) {
@@ -29,10 +29,10 @@ export function validateCode(instructions) {
     memory = newState.memory;
     pc = newState.pc;
 
-    if (newState.errorMessage) errorMessage = newState.errorMessage;
+    if (newState.error) error = newState.error;
     if (executedInstructions.length > MAX_INSTRUCTIONS)
-      errorMessage = 'Instruction limit reached (' + MAX_INSTRUCTIONS + ')';
-    if (errorMessage != '') break;
+      error = 'Instruction limit reached (' + MAX_INSTRUCTIONS + ')';
+    if (error != '') break;
   }
 
   const result = {
@@ -41,6 +41,6 @@ export function validateCode(instructions) {
     executedInstructions,
     instructionCount: executedInstructions.length
   };
-  if (errorMessage != '') result.errorMessage = errorMessage;
+  if (error != '') result.error = error;
   return result;
 }

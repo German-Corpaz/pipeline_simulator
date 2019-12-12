@@ -28,7 +28,9 @@ function mainCode() {
       break;
     }
   }
+  console.log('--------Set of instructions-----------');
   console.log(instructions);
+  console.log('--------------------------------------');
   if (parsingError) {
     /* TODO show parsing error in console */
     editor.highlightLine(i);
@@ -41,17 +43,23 @@ function mainCode() {
         parsingError
     );
   } else {
-    // let codeValidationResult = validateCode(instructions);
-    // if (codeValidationResult.errorMessage) {
-    //   /* TODO show runtime error in console */
-    //   console.log(codeValidationResult.errorMessage);
-    // }
+    let codeValidationResult = validateCode(instructions);
+
+    if (codeValidationResult.error) {
+      /* TODO show runtime error in console */
+      console.log('Runtime Error ' + codeValidationResult.error);
+      editor.highlightLine(codeValidationResult.executedInstructions.pop().index);
+    } else {
+      console.log('--------Code execution -----------');
+      console.log(codeValidationResult);
+      console.log('--------------------------------------');
+      codeValidationResult.instructions = instructions;
+
+      let pipelineResult = pipeline.basicPipeline(codeValidationResult);
+      console.log('--------Pipeline -----------');
+      console.log(pipelineResult);
+      console.log('--------------------------------------');
+      drawChart(pipelineResult);
+    }
   }
-  //else {
-  //       codeValidationResult.instructions = instructions;
-  //       console.log(codeValidationResult);
-  //       let pipelineResult = pipeline.basicPipeline(codeValidationResult);
-  //       drawChart(pipelineResult);
-  //     }
-  //   }
 }

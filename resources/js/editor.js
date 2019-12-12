@@ -26,13 +26,13 @@ export function highlightLine(index) {
   let codeLines = code.split('\n');
   let lineToHighlight = 0;
   let counter = 0;
-  while (counter < index) {
+  while (counter <= index) {
     if (!blankLine(codeLines[lineToHighlight])) {
       counter++;
     }
     lineToHighlight++;
-    if (counter > 200) break;
   }
+  lineToHighlight--;
   marker = editor.session.addMarker(
     new Range(lineToHighlight, 0, lineToHighlight, 1),
     'error',

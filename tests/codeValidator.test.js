@@ -7,7 +7,7 @@ test('Simple ADD using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -34,7 +34,7 @@ test('Simple SUB using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -61,7 +61,7 @@ test('Simple MUL using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -88,7 +88,7 @@ test('Simple DIV using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -115,7 +115,7 @@ test('Simple REM using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -142,7 +142,7 @@ test('Simple AND using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -169,7 +169,7 @@ test('Simple OR using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -196,7 +196,7 @@ test('Simple XOR using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -223,7 +223,7 @@ test('Simple SLT using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -250,7 +250,7 @@ test('Simple SLL and SLR using ADDI and ORI', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -285,7 +285,7 @@ test('Inmediate Operations', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -313,7 +313,7 @@ test('Move Operation', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -349,7 +349,7 @@ test('Branch Operations', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -376,7 +376,7 @@ test('Memory Operations', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('registers', [
@@ -403,7 +403,7 @@ test('Jump Operations', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
   expect(validator.validateCode(instructions)).toHaveProperty('instructionCount', 3);
@@ -415,10 +415,10 @@ test('Overflow Error', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
-  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
+  expect(validator.validateCode(instructions)).toHaveProperty('error');
 });
 
 test('Segmentation Fault', () => {
@@ -426,10 +426,10 @@ test('Segmentation Fault', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
-  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
+  expect(validator.validateCode(instructions)).toHaveProperty('error');
 });
 
 test('Invalid JUMP', () => {
@@ -437,10 +437,10 @@ test('Invalid JUMP', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
-  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
+  expect(validator.validateCode(instructions)).toHaveProperty('error');
 });
 
 test('Reach limit of operations', () => {
@@ -448,18 +448,18 @@ test('Reach limit of operations', () => {
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
-  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
+  expect(validator.validateCode(instructions)).toHaveProperty('error');
 });
 test('Division by 0', () => {
   const codeLines = ['DIV R1,R1,R1'];
   const instructions = [];
   for (let i = 0; i < codeLines.length; i += 1) {
     const line = codeLines[i];
-    const newInstruction = new Instruction(line);
+    const newInstruction = new Instruction(line, i);
     instructions.push(newInstruction);
   }
-  expect(validator.validateCode(instructions)).toHaveProperty('errorMessage');
+  expect(validator.validateCode(instructions)).toHaveProperty('error');
 });

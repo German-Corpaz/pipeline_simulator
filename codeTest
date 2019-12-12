@@ -27,3 +27,15 @@ mul r1,r2,r1
 rem r1,r2,r1
 lw r1,20(r2)
 sw r1,20(r2)
+
+------------------
+Call to external piece of code
+addi r1,r1,20
+addi r2,r2,30
+jump 6
+sw r3,0(r4)
+nop
+jump 8
+mul r3,r2,r1
+jump 3
+nop

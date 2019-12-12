@@ -1,12 +1,11 @@
 import * as parserUtils from './parserUtils.js';
-import * as instructionSet from '../instructionSet.js';
-
+import { architecture } from '../architecture.js';
 export function executeInstruction(instruction, state) {
   let mnemonic = instruction.mnemonic;
   let registers = state.registers;
   let memory = state.memory;
   let pc = state.pc;
-  let errorMessage = '';
+  let error = '';
   let jumped = false;
   if (parserUtils.threeRegisterInstruction(mnemonic)) {
     let operationVariables = {
@@ -15,12 +14,15 @@ export function executeInstruction(instruction, state) {
       sourceRegister2: instruction.sourceRegister2,
       operator: getOperator(mnemonic)
     };
-    if (mnemonic == 'DIV' && registers[operationVariables.sourceRegister2] == 0)
-      errorMessage = 'Division by 0 on ' + instruction.fullInstruction;
+    if (
+      (mnemonic == 'DIV' || mnemonic == 'REM') &&
+      registers[operationVariables.sourceRegister2] == 0
+    )
+      error = 'Division by 0 on ' + instruction.fullInstruction;
     else {
       registers = operateOnRegisters(registers, operationVariables);
       if (overflow(registers[operationVariables.destinationRegister]))
-        errorMessage = 'Overflow Error on Operation ' + instruction.fullInstruction;
+        error = 'Overflow Error on Operation ' + instruction.fullInstruction;
     }
   } else if (parserUtils.twoRegistersOneConstantInstruction(mnemonic)) {
     let operationVariables = {
@@ -31,7 +33,7 @@ export function executeInstruction(instruction, state) {
     };
     registers = operateOnRegistersAndConstant(registers, operationVariables);
     if (overflow(registers[operationVariables.destinationRegister]))
-      errorMessage = 'Overflow Error on Operation ' + instruction.fullInstruction;
+      error = 'Overflow Error on Operation ' + instruction.fullInstruction;
   } else if (parserUtils.memoryInstruction(mnemonic)) {
     let sReg1 = instruction.sourceRegister1;
     let offset = instruction.memoryOffset;
@@ -39,13 +41,13 @@ export function executeInstruction(instruction, state) {
     if (isValidMemoryAddress(memoryAddress)) {
       if (mnemonic == 'LW') registers[instruction.destinationRegister] = memory[memoryAddress];
       else if (mnemonic == 'SW') memory[memoryAddress] = registers[instruction.sourceRegister2];
-    } else errorMessage = 'Segmentation Fault, trying to access address ' + memoryAddress;
+    } else error = 'Segmentation Fault, trying to access address ' + memoryAddress;
   } else if (mnemonic == 'MOVE') {
     registers[instruction.destinationRegister] = registers[instruction.sourceRegister1];
   } else if (parserUtils.branchInstruction(mnemonic)) {
     let source1 = instruction.sourceRegister1;
     let source2 = instruction.sourceRegister2;
-    let relativeBranch = instruction.branchAddress + pc;
+    let relativeBranch = instruction.branchAddress + instruction.index + 1;
 
     if (isValidInstructionAddress(relativeBranch, state.numberOfInstructions)) {
       if (mnemonic == 'BEQ') {
@@ -60,12 +62,11 @@ export function executeInstruction(instruction, state) {
         }
       }
     } else {
-      errorMessage = 'Invalid branch address ' + relativeBranch;
+      error = 'Invalid branch address ' + relativeBranch;
     }
   } else if (mnemonic == 'JUMP') {
     let jumpAddress = instruction.jumpAddress;
-    if (jumpAddress >= state.numberOfInstructions)
-      errorMessage = 'Jumo Address Invalid ' + jumpAddress;
+    if (jumpAddress >= state.numberOfInstructions) error = 'Jumo Address Invalid ' + jumpAddress;
     else {
       pc = jumpAddress;
       jumped = true;
@@ -79,7 +80,7 @@ export function executeInstruction(instruction, state) {
     jumped
   };
 
-  if (errorMessage != '') output.errorMessage = errorMessage;
+  if (error != '') output.error = error;
   return output;
 }
 export function getOperator(mnemonic) {
@@ -196,7 +197,7 @@ export function overflow(value) {
 }
 
 export function isValidMemoryAddress(memoryAddress) {
-  return memoryAddress >= 0 && memoryAddress < instructionSet.memorySize;
+  return memoryAddress >= 0 && memoryAddress < architecture.memory;
 }
 
 export function isValidInstructionAddress(pc, numberOfInstructions) {
