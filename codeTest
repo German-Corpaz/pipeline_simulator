@@ -18,3 +18,12 @@ addi r11,r11,1
 move r0,r1
 move r1,r2
 bne r10,r11,-6
+
+-----------------
+Multiple cycle instructions
+addi r1,r2,20
+div r1,r2,r1
+mul r1,r2,r1
+rem r1,r2,r1
+lw r1,20(r2)
+sw r1,20(r2)

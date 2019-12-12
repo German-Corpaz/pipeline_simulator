@@ -1,7 +1,6 @@
 let chart;
 export function drawChart(pipelineResult) {
   am4core.options.autoSetClassName = true;
-  console.log(pipelineResult);
   let dataset = buildDataset(pipelineResult.matrix, pipelineResult.instructions);
   if (chart) chart.dispose();
   chart = am4core.create('ganttChart', am4charts.XYChart);
@@ -60,7 +59,6 @@ function buildDataset(matrix, instructions) {
       }
     }
   }
-  console.log(dataset);
   return dataset;
 }
 function getColor(t) {

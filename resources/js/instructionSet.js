@@ -1,3 +1,10 @@
+export const memorySize = 128;
+export const numberOfRegisters = 16;
+export const maxInstructions = 200;
+export const multCycles = 4;
+export const divCycles = 4;
+export const writeMemoryCycles = 2;
+export const readMemoryCycles = 2;
 export const instructions = [
   'ADD',
   'ADDI',

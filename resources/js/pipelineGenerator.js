@@ -1,16 +1,19 @@
-import * as utilities from './utilities.js';
-export function getMatrixWithoutPipelining(result) {
-  const DIV_AND_MULT_CYCLES = 4;
+import * as instructionSet from './instructionSet.js';
+import * as parserUtils from './utils/parserUtils.js';
+import * as runtimeUtils from './utils/runtimeUtils.js';
+import * as pipelineUtils from './utils/pipelineUtils.js';
+export function noPipelineMatrix(result) {
+  const MULT_CYCLES = instructionSet.multCycles;
+  const DIV_CYCLES = instructionSet.divCycles;
+  const READMEMORY_CYCLES = instructionSet.readMemoryCycles;
+  const WRITEMEMORY_CYCLES = instructionSet.writeMemoryCycles;
   let instructions = result.executedInstructions;
-  let amountOfInstructionsExecuted = instructions.length;
 
-  let matrix = utilities.createMatrix(
-    amountOfInstructionsExecuted,
-    amountOfInstructionsExecuted * 8
-  );
+  let matrix = [];
   let cycle = 0;
 
   for (let i = 0; i < instructions.length; i++) {
+    matrix.push([]);
     for (let k = 0; k < cycle; k++) {
       matrix[i].push(null);
     }
@@ -18,12 +21,13 @@ export function getMatrixWithoutPipelining(result) {
     cycle++;
     matrix[i].push('D');
     cycle++;
-    if (
-      instructions[i].mnemonic == 'MUL' ||
-      instructions[i].mnemonic == 'DIV' ||
-      instructions[i].mnemonic == 'REM'
-    ) {
-      for (let j = 0; j < DIV_AND_MULT_CYCLES; j++) {
+    if (instructions[i].mnemonic == 'MUL') {
+      for (let j = 0; j < MULT_CYCLES; j++) {
+        matrix[i].push('E');
+        cycle++;
+      }
+    } else if (instructions[i].mnemonic == 'DIV' || instructions[i].mnemonic == 'REM') {
+      for (let j = 0; j < DIV_CYCLES; j++) {
         matrix[i].push('E');
         cycle++;
       }
@@ -31,8 +35,21 @@ export function getMatrixWithoutPipelining(result) {
       matrix[i].push('E');
       cycle++;
     }
-    matrix[i].push('M');
-    cycle++;
+    if (instructions[i].mnemonic == 'LW') {
+      for (let j = 0; j < READMEMORY_CYCLES; j++) {
+        matrix[i].push('M');
+        cycle++;
+      }
+    } else if (instructions[i].mnemonic == 'SW') {
+      for (let j = 0; j < WRITEMEMORY_CYCLES; j++) {
+        matrix[i].push('M');
+        cycle++;
+      }
+    } else {
+      matrix[i].push('M');
+      cycle++;
+    }
+
     matrix[i].push('WB');
     cycle++;
   }
@@ -43,7 +60,7 @@ export function getMatrixWithoutPipelining(result) {
   return output;
 }
 
-export function getMatrixNotForwardingPipelining(result) {
+export function basicPipeline(result) {
   const MEMORY_SIZE = 128;
   const DIV_AND_MULT_CYCLES = 4;
   let matrix = [];
@@ -59,7 +76,8 @@ export function getMatrixNotForwardingPipelining(result) {
   let cycle = 0;
   let instructionsExecuted = [];
   let usedRegisters = [];
-  let cyclesInExecute = 1;
+  let cyclesInExecute = 0;
+  let cyclesInMemory = 0;
   const instructionsInPipe = () => {
     let instructionInPipe = false;
     instructionInPipe =
@@ -94,31 +112,31 @@ export function getMatrixNotForwardingPipelining(result) {
 
   const executeInstruction = instruction => {
     let mnemonic = instruction.mnemonic;
-    if (utilities.threeRegisterInstruction(mnemonic)) {
+    if (parserUtils.threeRegisterInstruction(mnemonic)) {
       let variables = {
         destinationRegister: instruction.destinationRegister,
         sourceRegister1: instruction.sourceRegister1,
         sourceRegister2: instruction.sourceRegister2,
-        operator: utilities.getOperator(mnemonic)
+        operator: runtimeUtils.getOperator(mnemonic)
       };
-      registers = utilities.operateOnRegisters(registers, variables);
-    } else if (utilities.twoRegistersOneConstantInstruction(mnemonic)) {
+      registers = pipelineUtils.operateOnRegisters(registers, variables);
+    } else if (parserUtils.twoRegistersOneConstantInstruction(mnemonic)) {
       let variables = {
         destinationRegister: instruction.destinationRegister,
         sourceRegister1: instruction.sourceRegister1,
         constant: instruction.constant,
-        operator: utilities.getOperator(mnemonic)
+        operator: runtimeUtils.getOperator(mnemonic)
       };
-      registers = utilities.operateOnRegistersAndConstant(registers, variables);
+      registers = pipelineUtils.operateOnRegistersAndConstant(registers, variables);
     } else if (mnemonic == 'MOVE') {
       registers[instruction.destinationRegister] = registers[instruction.sourceRegister1];
-    } else if (utilities.memoryInstruction(mnemonic)) {
+    } else if (parserUtils.memoryInstruction(mnemonic)) {
       let sReg1 = instruction.sourceRegister1;
       let offset = instruction.memoryOffset;
       let memoryAddress = registers[sReg1] + offset;
       if (mnemonic == 'LW') registers[instruction.destinationRegister] = memory[memoryAddress];
       else if (mnemonic == 'SW') memory[memoryAddress] = registers[instruction.sourceRegister2];
-    } else if (utilities.branchInstruction(mnemonic)) {
+    } else if (parserUtils.branchInstruction(mnemonic)) {
       let source1 = instruction.sourceRegister1;
       let source2 = instruction.sourceRegister2;
       let relativeBranch = instruction.branchAddress + instruction.index + 1;
@@ -146,19 +164,42 @@ export function getMatrixNotForwardingPipelining(result) {
   while (pc < instructions.length || instructionsInPipe()) {
     if (writebackStage) {
       let mnemonic = writebackStage.instruction.mnemonic;
-      if (!utilities.branchInstruction(mnemonic)) executeInstruction(writebackStage.instruction);
+      if (!(parserUtils.branchInstruction(mnemonic) || parserUtils.jumpInstruction(mnemonic)))
+        executeInstruction(writebackStage.instruction);
       releaseRegisterFromInstruction(writebackStage.instruction);
       writebackStage = null;
     }
     if (memoryStage) {
-      writebackStage = memoryStage;
-      matrix[writebackStage.index].push('WB');
-      memoryStage = null;
+      if (memoryStage.instruction.mnemonic == 'LW') {
+        if (cyclesInMemory == 1) {
+          writebackStage = memoryStage;
+          matrix[writebackStage.index].push('WB');
+          memoryStage = null;
+          cyclesInMemory = 0;
+        } else {
+          matrix[memoryStage.index].push('M');
+          cyclesInMemory++;
+        }
+      } else if (memoryStage.instruction.mnemonic == 'SW') {
+        if (cyclesInMemory == 1) {
+          writebackStage = memoryStage;
+          matrix[writebackStage.index].push('WB');
+          memoryStage = null;
+          cyclesInMemory = 0;
+        } else {
+          matrix[memoryStage.index].push('M');
+          cyclesInMemory++;
+        }
+      } else {
+        writebackStage = memoryStage;
+        matrix[writebackStage.index].push('WB');
+        memoryStage = null;
+      }
     }
     if (executeStage) {
       if (isMultipleCycleInstruction(executeStage.instruction)) {
-        if (cyclesInExecute == DIV_AND_MULT_CYCLES) {
-          cyclesInExecute = 1;
+        if (cyclesInExecute == DIV_AND_MULT_CYCLES - 1) {
+          cyclesInExecute = 0;
           memoryStage = executeStage;
           matrix[memoryStage.index].push('M');
           executeStage = null;
@@ -168,7 +209,8 @@ export function getMatrixNotForwardingPipelining(result) {
         }
       } else {
         let mnemonic = executeStage.instruction.mnemonic;
-        if (utilities.branchInstruction(mnemonic)) executeInstruction(executeStage.instruction);
+        if (parserUtils.branchInstruction(mnemonic) || parserUtils.jumpInstruction(mnemonic))
+          executeInstruction(executeStage.instruction);
         memoryStage = executeStage;
         matrix[memoryStage.index].push('M');
         executeStage = null;
