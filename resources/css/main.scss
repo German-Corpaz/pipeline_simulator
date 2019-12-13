@@ -47,6 +47,13 @@ $buttonColor: #ebf8ff;
   .right-container {
     background: $ganttBG;
     width: 1360px;
+    .ganttContainer {
+      height: 70vh;
+      overflow: scroll;
+    }
+    .cpiContainer {
+      height: 30vh;
+    }
   }
 }
 .amcharts-AmChartsLogo-group {

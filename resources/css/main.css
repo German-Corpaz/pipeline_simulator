@@ -56,6 +56,15 @@
   width: 1360px;
 }
 
+.container .right-container .ganttContainer {
+  height: 70vh;
+  overflow: scroll;
+}
+
+.container .right-container .cpiContainer {
+  height: 30vh;
+}
+
 .amcharts-AmChartsLogo-group {
   display: none;
   pointer-events: none;

@@ -61,10 +61,10 @@ export function noPipelineMatrix(result) {
 }
 
 export function basicPipeline(result) {
-  const MULT_CYCLES = 4;
-  const DIV_CYCLES = 4;
-  const READMEMORY_CYCLES = 2;
-  const WRITEMEMORY_CYCLES = 2;
+  const MULT_CYCLES = 8;
+  const DIV_CYCLES = 8;
+  const READMEMORY_CYCLES = 4;
+  const WRITEMEMORY_CYCLES = 4;
   const JUMP_RESOLVED = 'E';
   const BRANCH_RESOLVED = 'E';
 

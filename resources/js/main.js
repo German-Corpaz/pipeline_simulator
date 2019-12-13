@@ -3,7 +3,7 @@ import { getCodeLines } from './utils/codeUtils.js';
 import { validateCode } from './codeValidator.js';
 import Instruction from './Instruction.js';
 import * as pipeline from './pipelineGenerator.js';
-import { drawChart } from './chartGenerator.js';
+import { drawChart, drawCPIChart } from './chartGenerator.js';
 
 editor.setupEditor();
 
@@ -55,11 +55,13 @@ function mainCode() {
       console.log('--------------------------------------');
       codeValidationResult.instructions = instructions;
 
-      let pipelineResult = pipeline.basicPipeline(codeValidationResult);
+      let noPipeline = pipeline.noPipelineMatrix(codeValidationResult);
+      let basicPipeline = pipeline.basicPipeline(codeValidationResult);
       console.log('--------Pipeline -----------');
-      console.log(pipelineResult);
+      console.log(basicPipeline);
       console.log('--------------------------------------');
-      drawChart(pipelineResult);
+      drawChart(basicPipeline);
+      drawCPIChart(noPipeline, basicPipeline);
     }
   }
 }
