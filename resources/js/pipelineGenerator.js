@@ -61,36 +61,45 @@ export function noPipelineMatrix(result) {
 }
 
 export function basicPipeline(result) {
-  const MEMORY_SIZE = 128;
-  const DIV_AND_MULT_CYCLES = 4;
-  let matrix = [];
-  let instructions = result.instructions;
-  let registers = new Array(16).fill(0);
-  const memory = new Array(MEMORY_SIZE).fill(0);
-  let fetchStage = null;
-  let decodeStage = null;
-  let memoryStage = null;
-  let writebackStage = null;
-  let executeStage = null;
+  const MULT_CYCLES = 4;
+  const DIV_CYCLES = 4;
+  const READMEMORY_CYCLES = 2;
+  const WRITEMEMORY_CYCLES = 2;
+  const JUMP_RESOLVED = 'E';
+  const BRANCH_RESOLVED = 'E';
+
+  const MEMORY_SIZE = architecture.memory;
+  const MAX_INSTRUCTIONS = architecture.maxInstructions;
+  const REGISTERS = architecture.registers;
+
+  let registers = new Array(REGISTERS).fill(0);
+  let memory = new Array(MEMORY_SIZE).fill(0);
   let pc = 0;
+  let instructions = result.instructions;
+
+  let pipeline = {
+    fetchStage: null,
+    decodeStage: null,
+    memoryStage: null,
+    writebackStage: null,
+    executeStage: null
+  };
+  let matrix = [];
   let cycle = 0;
   let instructionsExecuted = [];
   let usedRegisters = [];
-  let cyclesInExecute = 0;
-  let cyclesInMemory = 0;
+
   const instructionsInPipe = () => {
     let instructionInPipe = false;
     instructionInPipe =
-      fetchStage || decodeStage || executeStage || memoryStage || writebackStage ? true : false;
+      pipeline.fetchStage ||
+      pipeline.decodeStage ||
+      pipeline.executeStage ||
+      pipeline.memoryStage ||
+      pipeline.writebackStage
+        ? true
+        : false;
     return instructionInPipe;
-  };
-
-  const isMultipleCycleInstruction = instruction => {
-    let condition =
-      instruction.mnemonic == 'MUL' ||
-      instruction.mnemonic == 'DIV' ||
-      instruction.mnemonic == 'REM';
-    return condition;
   };
 
   const hazard = instruction => {
@@ -101,144 +110,164 @@ export function basicPipeline(result) {
     return hazard;
   };
 
-  const addRegister = instruction => {
+  const takeRegister = instruction => {
     if (instruction.destinationRegister != undefined)
       usedRegisters.push(instruction.destinationRegister);
   };
-  const releaseRegisterFromInstruction = instruction => {
+
+  const releaseRegister = instruction => {
     if (instruction.destinationRegister != undefined)
       usedRegisters.splice(usedRegisters.indexOf(instruction.destinationRegister), 1);
   };
-
-  const executeInstruction = instruction => {
-    let mnemonic = instruction.mnemonic;
-    if (parserUtils.threeRegisterInstruction(mnemonic)) {
-      let variables = {
-        destinationRegister: instruction.destinationRegister,
-        sourceRegister1: instruction.sourceRegister1,
-        sourceRegister2: instruction.sourceRegister2,
-        operator: runtimeUtils.getOperator(mnemonic)
-      };
-      registers = pipelineUtils.operateOnRegisters(registers, variables);
-    } else if (parserUtils.twoRegistersOneConstantInstruction(mnemonic)) {
-      let variables = {
-        destinationRegister: instruction.destinationRegister,
-        sourceRegister1: instruction.sourceRegister1,
-        constant: instruction.constant,
-        operator: runtimeUtils.getOperator(mnemonic)
-      };
-      registers = pipelineUtils.operateOnRegistersAndConstant(registers, variables);
-    } else if (mnemonic == 'MOVE') {
-      registers[instruction.destinationRegister] = registers[instruction.sourceRegister1];
-    } else if (parserUtils.memoryInstruction(mnemonic)) {
-      let sReg1 = instruction.sourceRegister1;
-      let offset = instruction.memoryOffset;
-      let memoryAddress = registers[sReg1] + offset;
-      if (mnemonic == 'LW') registers[instruction.destinationRegister] = memory[memoryAddress];
-      else if (mnemonic == 'SW') memory[memoryAddress] = registers[instruction.sourceRegister2];
-    } else if (parserUtils.branchInstruction(mnemonic)) {
-      let source1 = instruction.sourceRegister1;
-      let source2 = instruction.sourceRegister2;
-      let relativeBranch = instruction.branchAddress + instruction.index + 1;
-      if (mnemonic == 'BEQ') {
-        if (registers[source1] == registers[source2]) {
-          pc = relativeBranch;
-          fetchStage = null;
-          decodeStage = null;
-        }
-      } else if (mnemonic == 'BNE') {
-        if (registers[source1] != registers[source2]) {
-          pc = relativeBranch;
-          fetchStage = null;
-          decodeStage = null;
-        }
-      }
-    } else if (mnemonic == 'JUMP') {
-      let jumpAddress = instruction.jumpAddress;
-      pc = jumpAddress;
-      fetchStage = null;
-      decodeStage = null;
-    }
-  };
-
   while (pc < instructions.length || instructionsInPipe()) {
-    if (writebackStage) {
-      let mnemonic = writebackStage.instruction.mnemonic;
-      if (!(parserUtils.branchInstruction(mnemonic) || parserUtils.jumpInstruction(mnemonic)))
-        executeInstruction(writebackStage.instruction);
-      releaseRegisterFromInstruction(writebackStage.instruction);
-      writebackStage = null;
-    }
-    if (memoryStage) {
-      if (memoryStage.instruction.mnemonic == 'LW') {
-        if (cyclesInMemory == 1) {
-          writebackStage = memoryStage;
-          matrix[writebackStage.index].push('WB');
-          memoryStage = null;
-          cyclesInMemory = 0;
-        } else {
-          matrix[memoryStage.index].push('M');
-          cyclesInMemory++;
-        }
-      } else if (memoryStage.instruction.mnemonic == 'SW') {
-        if (cyclesInMemory == 1) {
-          writebackStage = memoryStage;
-          matrix[writebackStage.index].push('WB');
-          memoryStage = null;
-          cyclesInMemory = 0;
-        } else {
-          matrix[memoryStage.index].push('M');
-          cyclesInMemory++;
-        }
-      } else {
-        writebackStage = memoryStage;
-        matrix[writebackStage.index].push('WB');
-        memoryStage = null;
+    if (pipeline.writebackStage) {
+      let mnemonic = pipeline.writebackStage.instruction.mnemonic;
+      if (!(parserUtils.branchInstruction(mnemonic) || parserUtils.jumpInstruction(mnemonic))) {
+        let actualState = {
+          registers,
+          memory,
+          pc,
+          numberOfInstructions: instructions.length
+        };
+        let newState = runtimeUtils.executeInstruction(
+          pipeline.writebackStage.instruction,
+          actualState
+        );
+        registers = newState.registers;
+        memory = newState.memory;
       }
+      releaseRegister(pipeline.writebackStage.instruction);
+      pipeline.writebackStage = null;
     }
-    if (executeStage) {
-      if (isMultipleCycleInstruction(executeStage.instruction)) {
-        if (cyclesInExecute == DIV_AND_MULT_CYCLES - 1) {
-          cyclesInExecute = 0;
-          memoryStage = executeStage;
-          matrix[memoryStage.index].push('M');
-          executeStage = null;
+    if (pipeline.memoryStage) {
+      let mnemonic = pipeline.memoryStage.instruction.mnemonic;
+      if (mnemonic == 'LW') {
+        if (pipeline.memoryStage.memoryCycles == READMEMORY_CYCLES) {
+          pipeline.writebackStage = pipeline.memoryStage;
+          matrix[pipeline.writebackStage.index].push('WB');
+          pipeline.memoryStage = null;
         } else {
-          cyclesInExecute++;
-          matrix[executeStage.index].push('E');
+          pipeline.memoryStage.memoryCycles++;
+          matrix[pipeline.memoryStage.index].push('M');
+        }
+      } else if (mnemonic == 'SW') {
+        if (pipeline.memoryStage.memoryCycles == WRITEMEMORY_CYCLES) {
+          pipeline.writebackStage = pipeline.memoryStage;
+          matrix[pipeline.writebackStage.index].push('WB');
+          pipeline.memoryStage = null;
+        } else {
+          pipeline.memoryStage.memoryCycles++;
+          matrix[pipeline.memoryStage.index].push('M');
         }
       } else {
-        let mnemonic = executeStage.instruction.mnemonic;
-        if (parserUtils.branchInstruction(mnemonic) || parserUtils.jumpInstruction(mnemonic))
-          executeInstruction(executeStage.instruction);
-        memoryStage = executeStage;
-        matrix[memoryStage.index].push('M');
-        executeStage = null;
+        pipeline.writebackStage = pipeline.memoryStage;
+        matrix[pipeline.writebackStage.index].push('WB');
+        pipeline.memoryStage = null;
       }
     }
-    if (decodeStage) {
-      if (executeStage == null && !hazard(decodeStage.instruction)) {
-        executeStage = decodeStage;
-        addRegister(executeStage.instruction);
-        matrix[executeStage.index].push('E');
-        decodeStage = null;
+    if (pipeline.executeStage) {
+      let mnemonic = pipeline.executeStage.instruction.mnemonic;
+      if (mnemonic == 'MUL') {
+        if (pipeline.executeStage.executeCycles == MULT_CYCLES) {
+          if (pipeline.memoryStage == null) {
+            pipeline.memoryStage = pipeline.executeStage;
+            matrix[pipeline.memoryStage.index].push('M');
+            pipeline.executeStage = null;
+          } else {
+            matrix[pipeline.executeStage.index].push('S');
+          }
+        } else {
+          pipeline.executeStage.executeCycles++;
+          matrix[pipeline.executeStage.index].push('E');
+        }
+      } else if (mnemonic == 'DIV' || mnemonic == 'REM') {
+        if (pipeline.executeStage.executeCycles == DIV_CYCLES) {
+          if (pipeline.memoryStage == null) {
+            pipeline.memoryStage = pipeline.executeStage;
+            matrix[pipeline.memoryStage.index].push('M');
+            pipeline.executeStage = null;
+          } else {
+            matrix[pipeline.executeStage.index].push('S');
+          }
+        } else {
+          pipeline.executeStage.executeCycles++;
+          matrix[pipeline.executeStage.index].push('E');
+        }
+      } else if (parserUtils.branchInstruction(mnemonic) || parserUtils.jumpInstruction(mnemonic)) {
+        if (pipeline.executeStage.jumped === undefined) {
+          pipeline.executeStage.jumped = true;
+          let actualState = {
+            registers,
+            memory,
+            pc,
+            numberOfInstructions: instructions.length
+          };
+          let newState = runtimeUtils.executeInstruction(
+            pipeline.executeStage.instruction,
+            actualState
+          );
+          registers = newState.registers;
+          memory = newState.memory;
+          if (newState.jumped) {
+            pc = newState.pc;
+            pipeline.fetchStage = null;
+            pipeline.decodeStage = null;
+          }
+          if (pipeline.memoryStage == null) {
+            pipeline.memoryStage = pipeline.executeStage;
+            pipeline.memoryStage.memoryCycles = 1;
+            matrix[pipeline.memoryStage.index].push('M');
+            pipeline.executeStage = null;
+          } else {
+            matrix[pipeline.executeStage.index].push('S');
+          }
+        } else {
+          if (pipeline.memoryStage == null) {
+            pipeline.memoryStage = pipeline.executeStage;
+            pipeline.memoryStage.memoryCycles = 1;
+
+            matrix[pipeline.memoryStage.index].push('M');
+            pipeline.executeStage = null;
+          } else {
+            matrix[pipeline.executeStage.index].push('S');
+          }
+        }
       } else {
-        matrix[decodeStage.index].push('S');
+        if (pipeline.memoryStage == null) {
+          pipeline.memoryStage = pipeline.executeStage;
+          pipeline.memoryStage.memoryCycles = 1;
+
+          matrix[pipeline.memoryStage.index].push('M');
+          pipeline.executeStage = null;
+        } else {
+          matrix[pipeline.executeStage.index].push('S');
+        }
       }
     }
-    if (fetchStage) {
-      if (decodeStage == null) {
-        decodeStage = fetchStage;
-        matrix[decodeStage.index].push('D');
-        fetchStage = null;
+    if (pipeline.decodeStage) {
+      if (pipeline.executeStage == null && !hazard(pipeline.decodeStage.instruction)) {
+        pipeline.executeStage = pipeline.decodeStage;
+        pipeline.executeStage.executeCycles = 1;
+        takeRegister(pipeline.executeStage.instruction);
+        matrix[pipeline.executeStage.index].push('E');
+        pipeline.decodeStage = null;
       } else {
-        matrix[fetchStage.index].push('S');
+        matrix[pipeline.decodeStage.index].push('S');
       }
     }
-    if (fetchStage == null) {
+    if (pipeline.fetchStage) {
+      if (pipeline.decodeStage == null) {
+        pipeline.decodeStage = pipeline.fetchStage;
+        matrix[pipeline.decodeStage.index].push('D');
+        pipeline.fetchStage = null;
+      } else {
+        matrix[pipeline.fetchStage.index].push('S');
+      }
+    }
+    if (pipeline.fetchStage == null) {
       if (pc < instructions.length) {
         let index = instructionsExecuted.length;
-        fetchStage = {
+        pipeline.fetchStage = {
           instruction: instructions[pc],
           index: index
         };
@@ -249,41 +278,10 @@ export function basicPipeline(result) {
         pc++;
       }
     }
-
     cycle++;
     if (cycle > 500) break;
   }
 
-  let output = {
-    matrix,
-    instructions: instructionsExecuted
-  };
+  let output = { matrix, instructions: instructionsExecuted, registers, memory };
   return output;
-}
-
-export function basicPipeline2(result) {
-  const MULT_CYCLES = 4;
-  const DIV_CYCLES = 4;
-  const READMEMORY_CYCLES = 2;
-  const WRITEMEMORY_CYCLES = 2;
-  const MEMORY_SIZE = architecture.memory;
-  const MAX_INSTRUCTIONS = architecture.maxInstructions;
-  const REGISTERS = architecture.registers;
-
-  let registers = new Array(REGISTERS).fill(0);
-  let memory = new Array(MEMORY_SIZE).fill(0);
-  let pc = 0;
-  let instructions = result.instructions;
-
-  let fetchStage = null;
-  let decodeStage = null;
-  let memoryStage = null;
-  let writebackStage = null;
-  let executeStage = null;
-
-  let cycle = 0;
-  let instructionsExecuted = [];
-  let usedRegisters = [];
-  let cyclesInExecute = 0;
-  let cyclesInMemory = 0;
 }
