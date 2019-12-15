@@ -1,5 +1,6 @@
 import * as codeUtils from '../../resources/js/utils/codeUtils.js';
 
+/* getCodeLines */
 test('Split code returns array with 3 sentences', () => {
   expect(codeUtils.getCodeLines('sentence 1\nsentence 2\nsentence 3')).toStrictEqual([
     'sentence 1',

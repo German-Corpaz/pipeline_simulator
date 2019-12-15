@@ -48,11 +48,11 @@ $buttonColor: #ebf8ff;
     background: $ganttBG;
     width: 1360px;
     .ganttContainer {
-      height: 70vh;
-      overflow: scroll;
+      height: 100%;
+      overflow: auto;
     }
     .cpiContainer {
-      height: 30vh;
+      height: 41vh;
     }
   }
 }

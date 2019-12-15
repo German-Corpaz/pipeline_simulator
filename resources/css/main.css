@@ -57,12 +57,12 @@
 }
 
 .container .right-container .ganttContainer {
-  height: 70vh;
-  overflow: scroll;
+  height: 100%;
+  overflow: auto;
 }
 
 .container .right-container .cpiContainer {
-  height: 30vh;
+  height: 41vh;
 }
 
 .amcharts-AmChartsLogo-group {

@@ -1,6 +1,6 @@
 export const architecture = {
   registers: 16,
-  memory: 128,
+  memory: 32,
   maxInstructions: 200,
   instructions: [
     'ADD',

@@ -12,6 +12,7 @@ export function setupEditor() {
   let editor = ace.edit(EDITOR_ID);
   editor.setTheme('ace/theme/chaos');
   editor.session.setMode('ace/mode/assembly_x86');
+  editor.setOption('firstLineNumber', 0);
 }
 
 export function getEditorCode() {

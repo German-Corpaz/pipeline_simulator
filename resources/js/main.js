@@ -4,15 +4,17 @@ import { validateCode } from './codeValidator.js';
 import Instruction from './Instruction.js';
 import * as pipeline from './pipelineGenerator.js';
 import { drawChart, drawCPIChart } from './chartGenerator.js';
+import { NoPipeline } from './schedulers/NoPipeline.js';
+import { NoForwardingPipeline } from './schedulers/NoForwardingPipeline.js';
 
 editor.setupEditor();
-
 setupListeners();
 
 function setupListeners() {
   $('.primary').click(mainCode);
   editor.setupListener();
 }
+
 function mainCode() {
   const code = editor.getEditorCode();
   const codeLines = getCodeLines(code);
@@ -54,14 +56,14 @@ function mainCode() {
       console.log(codeValidationResult);
       console.log('--------------------------------------');
       codeValidationResult.instructions = instructions;
-
-      let noPipeline = pipeline.noPipelineMatrix(codeValidationResult);
-      let basicPipeline = pipeline.basicPipeline(codeValidationResult);
+      let noPipeScheduling = new NoPipeline(codeValidationResult);
+      let basicPipeScheduling = new NoForwardingPipeline(codeValidationResult);
+      //let basicPipeline = pipeline.forwardingPipeline(codeValidationResult);
       console.log('--------Pipeline -----------');
-      console.log(basicPipeline);
+      console.log(basicPipeScheduling);
       console.log('--------------------------------------');
-      drawChart(basicPipeline);
-      drawCPIChart(noPipeline, basicPipeline);
+      drawChart(basicPipeScheduling);
+      //drawCPIChart(noPipeline, basicPipeline);
     }
   }
 }

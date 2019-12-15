@@ -1,14 +1,17 @@
 let chart;
 let cpiChart;
 export function drawChart(pipelineResult) {
+  if (chart) chart.dispose();
   am4core.options.autoSetClassName = true;
+
+  if (pipelineResult.instructions.length == 0) return;
   let dataset = buildDataset(pipelineResult.matrix, pipelineResult.instructions);
   let height = 50 * pipelineResult.instructions.length + 50;
   let lastInstruction = pipelineResult.matrix[pipelineResult.matrix.length - 1];
   let width = 50 * lastInstruction.length + 100;
   $('.chartGantt').css('height', height + 'px');
   $('.chartGantt').css('width', width + 'px');
-  if (chart) chart.dispose();
+
   chart = am4core.create('ganttChart', am4charts.XYChart);
   chart.hiddenState.properties.opacity = 0;
   chart.data = dataset;
@@ -70,17 +73,17 @@ function buildDataset(matrix, instructions) {
 function getColor(t) {
   switch (t) {
     case 'F':
-      return '#A30B37';
+      return '#E3F2FD';
     case 'D':
-      return '#92D5E6';
+      return '#BBDEFB';
     case 'E':
-      return '#6A0F49';
+      return '#90CAF9';
     case 'M':
-      return '#0C7C59';
+      return '#64B5F6';
     case 'WB':
-      return '#A1EF8B';
+      return '#42A5F5';
     case 'S':
-      return '#aaaaaa';
+      return '#666666';
   }
 }
 
