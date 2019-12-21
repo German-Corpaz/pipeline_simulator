@@ -64,6 +64,11 @@ function buildDataset(matrix, instructions) {
           color: getColor(value),
           instruction: value
         };
+        if (value == '') {
+          data.fromCycle = 0;
+          data.toCycle = 0;
+          data.color = '#000000';
+        }
         dataset.push(data);
       }
     }

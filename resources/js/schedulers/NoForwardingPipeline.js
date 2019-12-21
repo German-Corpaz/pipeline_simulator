@@ -32,7 +32,8 @@ export function basicPipeline(result) {
   let cycle = 0;
   let instructionsExecuted = [];
   let usedRegisters = [];
-
+  let lastInstruction;
+  let stalled = false;
   const instructionsInPipe = () => {
     let instructionInPipe = false;
     instructionInPipe =
@@ -153,29 +154,39 @@ export function basicPipeline(result) {
     }
 
     if (pipeline.fetchStage == null) {
-      if (pc == -1) {
+      if (pc < instructions.length) {
         let index = instructionsExecuted.length;
-        matrix.push([]);
-        for (let i = 0; i < cycle; i++) matrix[index].push(null);
-        matrix[index].push('S');
-        instructionsExecuted.push({
-          fullInstruction: 'STALL'
-        });
-      } else if (pc < instructions.length) {
-        let index = instructionsExecuted.length;
+
         pipeline.fetchStage = {
           instruction: instructions[pc],
           index: index
         };
         matrix.push([]);
-        for (let i = 0; i < cycle; i++) matrix[index].push(null);
+
+        for (let i = 0; i < cycle; i++) {
+          if (
+            parserUtils.branchInstruction(lastInstruction) ||
+            parserUtils.jumpInstruction(lastInstruction)
+          ) {
+            if (matrix[index - 1][i - 1] == 'F' || stalled) {
+              matrix[index].push('S');
+              stalled = true;
+            } else {
+              matrix[index].push(null);
+            }
+          } else {
+            matrix[index].push(null);
+          }
+        }
+        stalled = false;
         matrix[index].push('F');
         instructionsExecuted.push(instructions[pc]);
+        lastInstruction = instructions[pc].mnemonic;
         if (
           parserUtils.branchInstruction(instructions[pc].mnemonic) ||
           parserUtils.jumpInstruction(instructions[pc].mnemonic)
         ) {
-          pc = -1;
+          pc = instructions.length;
         } else {
           pc++;
         }
